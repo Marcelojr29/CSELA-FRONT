@@ -1,0 +1,1 @@
+export interface DashboardShellProps extends React.HTMLAttributes<HTMLDivElement> {}
