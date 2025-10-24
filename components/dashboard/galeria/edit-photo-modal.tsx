@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,7 +17,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
-import { EditPhotoModalProps } from "@/interfaces/IEditPhotoModal"
+import type { GalleryPhoto } from "@/lib/gallery-service"
+
+interface EditPhotoModalProps {
+  photo: GalleryPhoto | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSave: (photo: GalleryPhoto) => void
+}
 
 export function EditPhotoModal({ photo, open, onOpenChange, onSave }: EditPhotoModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -37,13 +43,13 @@ export function EditPhotoModal({ photo, open, onOpenChange, onSave }: EditPhotoM
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!photo) return
+
     setIsSubmitting(true)
 
-    // Simulação de salvamento
-    setTimeout(() => {
-      setIsSubmitting(false)
-
-      const updatedPhoto = {
+    try {
+      const updatedPhoto: GalleryPhoto = {
         ...photo,
         title,
         description,
@@ -52,11 +58,15 @@ export function EditPhotoModal({ photo, open, onOpenChange, onSave }: EditPhotoM
 
       onSave(updatedPhoto)
 
+    } catch (error) {
       toast({
-        title: "Foto atualizada",
-        description: "As informações da foto foram atualizadas com sucesso.",
+        title: "Erro ao atualizar",
+        description: "Ocorreu um erro ao atualizar a foto. Tente novamente.",
+        variant: "destructive",
       })
-    }, 1000)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

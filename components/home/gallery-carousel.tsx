@@ -3,92 +3,43 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-
-// Dados simulados das fotos da galeria
-const galleryPhotos = [
-  {
-    id: 1,
-    imageUrl: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&h=400&fit=crop",
-    title: "Inauguração do novo sistema de captação",
-    description: "Cerimônia de inauguração do sistema de captação de água na comunidade Vila Esperança",
-    addedBy: "Admin",
-    addedAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    imageUrl: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=600&h=400&fit=crop",
-    title: "Voluntários em ação",
-    description: "Equipe de voluntários trabalhando na construção de cisternas no semiárido",
-    addedBy: "Funcionário",
-    addedAt: "2024-01-10",
-  },
-  {
-    id: 3,
-    imageUrl: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&h=400&fit=crop",
-    title: "Alegria das crianças",
-    description: "Crianças da comunidade celebrando o acesso à água potável pela primeira vez",
-    addedBy: "Admin",
-    addedAt: "2024-01-08",
-  },
-  {
-    id: 4,
-    imageUrl: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=600&h=400&fit=crop",
-    title: "Educação ambiental",
-    description: "Workshop sobre uso consciente da água e preservação ambiental",
-    addedBy: "Funcionário",
-    addedAt: "2024-01-05",
-  },
-  {
-    id: 5,
-    imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=400&fit=crop",
-    title: "Tecnologia a serviço da vida",
-    description: "Novo sistema de purificação de água instalado na comunidade",
-    addedBy: "Admin",
-    addedAt: "2024-01-03",
-  },
-  {
-    id: 6,
-    imageUrl: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=600&h=400&fit=crop",
-    title: "Parceria com comunidades indígenas",
-    description: "Trabalho conjunto para preservação de nascentes em terras indígenas",
-    addedBy: "Admin",
-    addedAt: "2024-01-01",
-  },
-]
+import { galleryService, type GalleryPhoto } from "@/lib/gallery-service"
 
 export default function GalleryCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([])
 
-  // Auto-play do carrossel
   useEffect(() => {
-    if (!isAutoPlaying) return
+    const activePhotos = galleryService.getPhotos({ status: "ativa" })
+    setGalleryPhotos(activePhotos)
+  }, [])
+
+  useEffect(() => {
+    if (!isAutoPlaying || galleryPhotos.length === 0) return
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % galleryPhotos.length)
-    }, 4000) // Muda a cada 4 segundos
+    }, 4000)
 
     return () => clearInterval(interval)
-  }, [isAutoPlaying])
+  }, [isAutoPlaying, galleryPhotos.length])
 
   const nextSlide = () => {
     setIsAutoPlaying(false)
     setCurrentIndex((prevIndex) => (prevIndex + 1) % galleryPhotos.length)
-    // Reativa o auto-play após 10 segundos
     setTimeout(() => setIsAutoPlaying(true), 10000)
   }
 
   const prevSlide = () => {
     setIsAutoPlaying(false)
     setCurrentIndex((prevIndex) => (prevIndex - 1 + galleryPhotos.length) % galleryPhotos.length)
-    // Reativa o auto-play após 10 segundos
     setTimeout(() => setIsAutoPlaying(true), 10000)
   }
 
   const goToSlide = (index: number) => {
     setIsAutoPlaying(false)
     setCurrentIndex(index)
-    // Reativa o auto-play após 10 segundos
     setTimeout(() => setIsAutoPlaying(true), 10000)
   }
 
@@ -118,7 +69,6 @@ export default function GalleryCarousel() {
       </div>
 
       <div className="relative max-w-4xl mx-auto">
-        {/* Carrossel principal */}
         <div className="relative overflow-hidden rounded-lg bg-muted">
           <div
             className="flex transition-transform duration-500 ease-in-out"
@@ -142,7 +92,6 @@ export default function GalleryCarousel() {
             ))}
           </div>
 
-          {/* Botões de navegação */}
           <Button
             variant="outline"
             size="icon"
@@ -164,7 +113,6 @@ export default function GalleryCarousel() {
           </Button>
         </div>
 
-        {/* Indicadores de posição */}
         <div className="flex justify-center mt-6 space-x-2">
           {galleryPhotos.map((_, index) => (
             <button

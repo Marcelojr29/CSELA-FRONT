@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { UserRole } from "@/types/user"
 
-// Dados estáticos dos perfis
 const perfisData = [
   {
     id: "1",
@@ -32,9 +31,9 @@ const perfisData = [
       "Acesso limitado somente à finanças como modo de visualização, podendo somente fazer download dos relatórios e dos dashboards",
     permissoes: {
       cadastroUsuarios: false,
-      gerenciarPerfis: false,
-      cadastroMoradores: false,
-      registrarPagamentos: false,
+      gerenciarPerfis: true,
+      cadastroMoradores: true,
+      registrarPagamentos: true,
       gerenciarPontos: false,
       visualizarDashboards: true,
       exportarRelatorios: true,
@@ -86,13 +85,11 @@ export function usePerfis() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  // Função para buscar os perfis
   const fetchPerfis = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // Simula um atraso de rede
       await new Promise((resolve) => setTimeout(resolve, 500))
       setPerfis(perfisData)
     } catch (err: any) {
@@ -103,18 +100,15 @@ export function usePerfis() {
     }
   }, [])
 
-  // Função para criar um novo perfil
   const createPerfil = useCallback(
     async (perfilData: any) => {
       try {
-        // Gera um ID único
         const newId = String(Date.now())
         const newPerfil = {
           id: newId,
           ...perfilData,
         }
 
-        // Atualiza o estado local
         setPerfis((prev) => [...prev, newPerfil])
         return newPerfil
       } catch (err: any) {
@@ -125,7 +119,6 @@ export function usePerfis() {
     [setPerfis],
   )
 
-  // Função para atualizar um perfil
   const updatePerfil = useCallback(
     async (id: string, perfilData: any) => {
       try {
@@ -134,7 +127,6 @@ export function usePerfis() {
           id,
         }
 
-        // Atualiza o estado local
         setPerfis((prev) => prev.map((p) => (p.id === id ? { ...p, ...perfilData } : p)))
         return updatedPerfil
       } catch (err: any) {
@@ -145,11 +137,9 @@ export function usePerfis() {
     [setPerfis],
   )
 
-  // Função para excluir um perfil
   const deletePerfil = useCallback(
     async (id: string) => {
       try {
-        // Atualiza o estado local
         setPerfis((prev) => prev.filter((p) => p.id !== id))
       } catch (err: any) {
         console.error("Erro ao excluir perfil:", err)
@@ -159,7 +149,6 @@ export function usePerfis() {
     [setPerfis],
   )
 
-  // Carrega os perfis ao montar o componente
   useEffect(() => {
     fetchPerfis()
   }, [fetchPerfis])

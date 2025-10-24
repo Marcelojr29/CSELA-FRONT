@@ -1,162 +1,155 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Eye, FileText } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { HistoricoPagamento, HistoricoPagamentosProps } from "@/interfaces/IHistoricoPagamento"
+import { Button } from "@/components/ui/button"
+import { Download, Eye } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useAuth } from "@/components/auth/auth-context"
+import { UserRole } from "@/types/user"
 
-// Dados simulados do histórico
-const historicoData: HistoricoPagamento[] = [
+interface Payment {
+  id: string
+  mes: string
+  valor: number
+  dataPagamento: string
+  metodoPagamento: string
+  status: "pago" | "pendente"
+  comprovante?: string
+}
+
+const mockPayments: Payment[] = [
   {
     id: "1",
-    mes: "Junho",
-    ano: 2024,
+    mes: "Janeiro/2024",
     valor: 50.0,
-    metodoPagamento: "pix",
-    dataPagamento: "15/06/2024",
-    comprovante: "comprovante-junho-2024.pdf",
-    observacao: "Pagamento via PIX",
-    registradoPor: "Admin",
+    dataPagamento: "05/01/2024",
+    metodoPagamento: "PIX",
+    status: "pago",
+    comprovante: "/placeholder.svg?height=400&width=300",
   },
   {
     id: "2",
-    mes: "Maio",
-    ano: 2024,
+    mes: "Fevereiro/2024",
     valor: 50.0,
-    metodoPagamento: "dinheiro",
-    dataPagamento: "10/05/2024",
-    observacao: "Pagamento em dinheiro",
-    registradoPor: "Admin",
+    dataPagamento: "03/02/2024",
+    metodoPagamento: "Dinheiro",
+    status: "pago",
+    comprovante: "/placeholder.svg?height=400&width=300",
   },
   {
     id: "3",
-    mes: "Abril",
-    ano: 2024,
+    mes: "Março/2024",
     valor: 50.0,
-    metodoPagamento: "dinheiro",
-    dataPagamento: "08/04/2024",
-    observacao: "Pagamento em dinheiro",
-    registradoPor: "Admin",
-  },
-  {
-    id: "4",
-    mes: "Março",
-    ano: 2024,
-    valor: 50.0,
-    metodoPagamento: "pix",
-    dataPagamento: "12/03/2024",
-    comprovante: "comprovante-marco-2024.pdf",
-    observacao: "Pagamento via PIX",
-    registradoPor: "Admin",
+    dataPagamento: "10/03/2024",
+    metodoPagamento: "PIX",
+    status: "pago",
+    comprovante: "/placeholder.svg?height=400&width=300",
   },
 ]
 
-export function HistoricoPagamentos({ moradorId }: HistoricoPagamentosProps) {
-  const [selectedPagamento, setSelectedPagamento] = useState<HistoricoPagamento | null>(null)
+export function HistoricoPagamentos({ moradorId }: { moradorId: string }) {
+  const [selectedComprovante, setSelectedComprovante] = useState<string | null>(null)
+  const { user } = useAuth()
+  const isContador = user?.role === UserRole.ACCOUNTANT
+
+  const handleDownload = (payment: Payment) => {
+    // Aqui você implementaria o download real
+    console.log("Downloading comprovante:", payment.id)
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Mês/Ano</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Método</TableHead>
-              <TableHead>Data Pagamento</TableHead>
-              <TableHead>Registrado por</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {historicoData.map((pagamento) => (
-              <TableRow key={pagamento.id}>
-                <TableCell className="font-medium">
-                  {pagamento.mes}/{pagamento.ano}
-                </TableCell>
-                <TableCell>R$ {pagamento.valor.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Badge variant={pagamento.metodoPagamento === "pix" ? "default" : "secondary"}>
-                    {pagamento.metodoPagamento === "pix" ? "PIX" : "Dinheiro"}
-                  </Badge>
-                </TableCell>
-                <TableCell>{pagamento.dataPagamento}</TableCell>
-                <TableCell>{pagamento.registradoPor}</TableCell>
-                <TableCell className="text-right">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedPagamento(pagamento)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Detalhes do Pagamento</DialogTitle>
-                        <DialogDescription>
-                          {pagamento.mes}/{pagamento.ano} - R$ {pagamento.valor.toFixed(2)}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="font-medium">Método:</p>
-                            <p>{pagamento.metodoPagamento === "pix" ? "PIX" : "Dinheiro"}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium">Data:</p>
-                            <p>{pagamento.dataPagamento}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium">Registrado por:</p>
-                            <p>{pagamento.registradoPor}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium">Valor:</p>
-                            <p>R$ {pagamento.valor.toFixed(2)}</p>
-                          </div>
-                        </div>
-
-                        {pagamento.observacao && (
-                          <div>
-                            <p className="font-medium text-sm">Observação:</p>
-                            <p className="text-sm text-muted-foreground">{pagamento.observacao}</p>
-                          </div>
-                        )}
-
-                        {pagamento.comprovante && (
-                          <div>
-                            <p className="font-medium text-sm mb-2">Comprovante:</p>
-                            <Button variant="outline" size="sm" className="w-full bg-transparent">
-                              <FileText className="mr-2 h-4 w-4" />
-                              Visualizar Comprovante
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </TableCell>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico de Pagamentos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mês</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Método</TableHead>
+                <TableHead>Comprovante</TableHead>
+                <TableHead>Status</TableHead>
+                {isContador && <TableHead>Ações</TableHead>}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {mockPayments.map((payment) => (
+                <TableRow key={payment.id}>
+                  <TableCell>{payment.mes}</TableCell>
+                  <TableCell>R$ {payment.valor.toFixed(2)}</TableCell>
+                  <TableCell>{payment.dataPagamento}</TableCell>
+                  <TableCell>{payment.metodoPagamento}</TableCell>
+                  <TableCell>
+                    {payment.comprovante ? (
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedComprovante(payment.comprovante!)}>
+                        <img
+                          src={payment.comprovante || "/placeholder.svg"}
+                          alt="Comprovante thumbnail"
+                          className="h-8 w-8 object-cover rounded"
+                        />
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Sem comprovante</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={payment.status === "pago" ? "default" : "secondary"}>
+                      {payment.status === "pago" ? "Pago" : "Pendente"}
+                    </Badge>
+                  </TableCell>
+                  {isContador && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedComprovante(payment.comprovante!)}
+                          disabled={!payment.comprovante}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(payment)}
+                          disabled={!payment.comprovante}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {historicoData.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <p>Nenhum pagamento registrado ainda.</p>
-        </div>
-      )}
-    </div>
+      <Dialog open={!!selectedComprovante} onOpenChange={() => setSelectedComprovante(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Comprovante de Pagamento</DialogTitle>
+            <DialogDescription>Visualização do comprovante anexado</DialogDescription>
+          </DialogHeader>
+          {selectedComprovante && (
+            <div className="mt-4">
+              <img
+                src={selectedComprovante || "/placeholder.svg"}
+                alt="Comprovante"
+                className="w-full h-auto rounded-lg border"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,9 +19,14 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, Upload, X } from "lucide-react"
 import { useAuth } from "@/components/auth/auth-context"
-import { AddPhotoModalProps } from "@/interfaces/IAddPhotoModal"
+import { galleryService } from "@/lib/gallery-service"
 
-export function AddPhotoModal({ children }: AddPhotoModalProps) {
+interface AddPhotoModalProps {
+  children: React.ReactNode
+  onPhotoAdded?: () => void
+}
+
+export function AddPhotoModal({ children, onPhotoAdded }: AddPhotoModalProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [title, setTitle] = useState("")
@@ -84,10 +88,28 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
       return
     }
 
+    if (!title.trim() || !description.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha o título e a descrição.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Simulação de upload
-    setTimeout(() => {
+    try {
+      const imageUrl = previewUrl || "/placeholder.svg"
+
+      const newPhoto = galleryService.addPhoto({
+        imageUrl,
+        title: title.trim(),
+        description: description.trim(),
+        status: isActive ? "ativa" : "inativa",
+        addedBy: user?.name || "Admin"
+      })
+
       setIsSubmitting(false)
       setOpen(false)
 
@@ -100,9 +122,22 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
 
       toast({
         title: "Foto adicionada com sucesso",
-        description: `A foto "${title}" foi adicionada à galeria.`,
+        description: `A foto "${newPhoto.title}" foi adicionada à galeria.`,
       })
-    }, 2000)
+
+      // Notificar componente pai para atualizar a lista
+      if (onPhotoAdded) {
+        onPhotoAdded()
+      }
+
+    } catch (error) {
+      setIsSubmitting(false)
+      toast({
+        title: "Erro ao adicionar foto",
+        description: "Ocorreu um erro ao adicionar a foto. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (

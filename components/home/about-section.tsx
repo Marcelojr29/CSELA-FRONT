@@ -9,16 +9,13 @@ export default function AboutSection() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Sobre a CSELA</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Somos uma organização não governamental dedicada a levar água limpa e saneamento básico para comunidades em
-            situação de vulnerabilidade.
+            O <strong>Centro Social e Educacional do Lago do Aleixo (CSELA)</strong> foi fundado em 24 de abril de 1972 por moradores do Lago do Aleixo em Manaus, com o propósito de enfrentar os desafios sociais do bairro e combater o preconceito contra portadores e ex-portadores do Mal de Hansen.
           </p>
           <p className="mt-4 text-muted-foreground">
-            Fundada em 2005, a CSELA já beneficiou mais de 1 milhão de pessoas em 5 países, implementando soluções
-            sustentáveis e capacitando comunidades para garantir o acesso contínuo à água potável.
+            Ao longo de mais de 50 anos, o CSELA transformou-se em uma referência em desenvolvimento comunitário, atuando em 11 comunidades do Bairro Antônio Aleixo através de quatro dimensões principais: <strong> Pedagógica, Geração de Renda, Saúde da População e Habitação</strong>.
           </p>
           <p className="mt-4 text-muted-foreground">
-            Nossa abordagem combina tecnologia, educação e participação comunitária para criar soluções duradouras que
-            transformam vidas.
+            Destaque para projetos emblemáticos como o <strong>"Água Para Todos"</strong> que levou água encanada para 800 famílias, demonstrando a força da organização popular e autogestão comunitária.
           </p>
           <Button className="mt-6 bg-transparent" variant="outline" asChild>
             <Link href="/nossa-historia">Conheça Nossa História Completa</Link>
@@ -28,7 +25,7 @@ export default function AboutSection() {
           <CardContent className="p-0">
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted">
               <img
-                src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&h=400&fit=crop"
+                src="/images/csela1.png"
                 alt="Projeto de distribuição de água em comunidade rural"
                 className="h-full w-full object-cover"
               />

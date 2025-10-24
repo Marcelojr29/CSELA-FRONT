@@ -15,14 +15,11 @@ export default function OurHistoryPage() {
       <Card className="mb-12">
         <CardHeader>
           <CardTitle>Como Tudo Começou</CardTitle>
-          <CardDescription>2005 - Os primeiros passos</CardDescription>
+          <CardDescription>24 de abril de 1972</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            A CSELA nasceu da iniciativa de um grupo de engenheiros ambientais e ativistas sociais que identificaram a
-            grave crise hídrica em comunidades rurais do nordeste brasileiro. O que começou como um projeto voluntário
-            de instalação de cisternas em 5 comunidades, rapidamente se expandiu quando os resultados positivos
-            começaram a aparecer.
+            O Centro Social e Educacional do Lago do Aleixo (CSELA) foi fundado por um grupo de moradores do bairro Lago do Aleixo, em Manaus, com o objetivo de combater desafios sociais, especialmente o preconceito contra portadores e ex-portadores do Mal de Hansen (lepra). A organização ganhou estrutura e apoio da Igreja Católica, incluindo missionários como Pe. Ludovico Crimella e Pe. José Maria Fumagalli.
           </p>
         </CardContent>
       </Card>
@@ -32,36 +29,51 @@ export default function OurHistoryPage() {
         <Timeline
           items={[
             {
+              year: "2005-2006",
+              title: "Projeto Água Para Todos – Bela Vista",
+              description: "Primeira reunião com lideranças comunitárias para discutir a falta de água no bairro Bela Vista, onde 700 famílias dependiam de poços artesianos sem rede de distribuição. Crianças e mulheres transportavam água manualmente, prejudicando estudos e condições higiênicas. ",
+            },
+            {
               year: "2005",
-              title: "Fundação",
-              description: "Criação da ONG e primeiros projetos em 5 comunidades rurais",
-            },
-            {
-              year: "2008",
-              title: "Expansão Regional",
+              title: "Projeto Água Para Todos – Bela Vista - Julho",
               description:
-                "Ampliação para 20 comunidades e desenvolvimento do primeiro sistema de captação de água da chuva",
+                "Elaboração do projeto pelo CSELA, com financiamento do grupo ALLEIMAR (80% dos recursos) e contrapartida da comunidade (20%).",
             },
             {
-              year: "2012",
-              title: "Reconhecimento Nacional",
-              description: "Prêmio Nacional de Sustentabilidade e parceria com o governo federal",
+              year: "2005",
+              title: "Projeto Água Para Todos – Bela Vista - Dezembro",
+              description: "Reunião com 400 famílias para apresentar o projeto, que incluía escavação de valas, instalação de tubulações e perfuração de novos poços.",
             },
             {
-              year: "2015",
-              title: "Ponto Crucial",
+              year: "2006",
+              title: "Projeto Água Para Todos – Bela Vista - Fevereiro",
               description:
-                "Desenvolvimento da tecnologia própria de purificação de água e expansão para 100 comunidades",
+                "Início das obras, com mutirões comunitários para escavar 6.363 metros de tubulações. ",
             },
             {
-              year: "2018",
-              title: "Internacionalização",
-              description: "Primeiros projetos internacionais na África e América Latina",
+              year: "2006",
+              title: "Projeto Água Para Todos – Bela Vista - Julho",
+              description: "Conclusão do projeto, beneficiando **800 famílias** (3.600 pessoas) com água canalizada.",
             },
             {
-              year: "2023",
-              title: "Atualidade",
-              description: "Presente em 5 países, com mais de 500 comunidades atendidas e 1 milhão de beneficiados",
+              year: "2006",
+              title: "Projeto Água Para Todos – Bela Vista - Agosto",
+              description: "Visita do grupo ALLEIMAR para avaliação.",
+            },
+            {
+              year: "2007-2009",
+              title: "Impacto e Expansão - 2007",
+              description: "Formalização de três funcionários do programa com carteira assinada e Inauguração do escritório de arrecadação",
+            },
+            {
+              year: "2007-2009",
+              title: "Impacto e Expansão - 2008",
+              description: "Perfuração de novo poço pela Prefeitura (plano emergencial) e Pesquisa de avaliação do projeto, com resultados positivos",
+            },
+            {
+              year: "2007-2009",
+              title: "Impacto e Expansão - 2009",
+              description: "Elaboração de artigo científico sobre o programa.",
             },
           ]}
         />
@@ -74,65 +86,77 @@ export default function OurHistoryPage() {
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-muted-foreground">
-            Hoje, a CSELA é reconhecida internacionalmente pelo seu trabalho na distribuição de água potável e
-            implementação de sistemas sustentáveis de captação e purificação. Contamos com uma equipe de mais de 200
-            profissionais dedicados e milhares de voluntários em todo o mundo.
+            Mais de 50 anos após sua fundação, o CSELA continua sendo uma <strong>semente de transformação social</strong> na Colônia Antônio Aleixo e entorno. Mantemos nosso compromisso com o desenvolvimento comunitário através das quatro dimensões fundamentais: <strong>Pedagógica, Geração de Renda, Saúde da População e Habitação</strong>.
+          </p>
+          <p className="mb-4 text-muted-foreground">
+            O projeto <strong>"Água Para Todos"</strong> tornou-se referência em autogestão comunitária, beneficiando milhares de famílias com água potável através de um sistema sustentável mantido pela própria comunidade. Continuamos fortalecendo o vínculo com as comissões organizadas e expandindo nossa atuação para outras comunidades carentes de Manaus.
           </p>
           <p className="text-muted-foreground">
-            Nossa metodologia inovadora já foi implementada em mais de 500 comunidades em 5 países, beneficiando
-            diretamente mais de 1 milhão de pessoas. Continuamos expandindo nossos projetos e desenvolvendo novas
-            tecnologias para tornar o acesso à água limpa uma realidade para todos.
+            Nossa metodologia de <strong>participação popular e autogestão</strong> já inspirou outras comunidades e demonstra que é possível, através da organização coletiva, resolver problemas graves mesmo sem o apoio do poder público, garantindo dignidade e cidadania para milhares de pessoas.
           </p>
         </CardContent>
       </Card>
 
       <div className="mt-12">
-        <h2 className="mb-6 text-2xl font-bold text-primary">Eventos Importantes</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              title: "Fórum Mundial da Água",
-              date: "Março 2022",
-              description: "Apresentação de nossas soluções no maior evento mundial sobre água",
-            },
-            {
-              title: "Conferência da ONU",
-              date: "Setembro 2021",
-              description: "Participação como organização convidada para discutir soluções sustentáveis",
-            },
-            {
-              title: "Semana da Água",
-              date: "Anual - Março",
-              description: "Evento organizado pela CSELA com workshops, palestras e atividades educativas",
-            },
-            {
-              title: "Expedição Águas do Sertão",
-              date: "Julho (anual)",
-              description: "Projeto de mapeamento e intervenção em comunidades do semiárido",
-            },
-            {
-              title: "Hackathon Tecnologias Hídricas",
-              date: "Outubro (anual)",
-              description: "Competição para desenvolvimento de soluções inovadoras para acesso à água",
-            },
-            {
-              title: "Gala Beneficente",
-              date: "Dezembro (anual)",
-              description: "Evento de arrecadação de fundos para projetos do ano seguinte",
-            },
-          ].map((event, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="text-lg">{event.title}</CardTitle>
-                <CardDescription>{event.date}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{event.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+  <h2 className="mb-6 text-2xl font-bold text-primary">Eventos Importantes</h2>
+  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    {[
+      {
+        title: "Inauguração do Sistema de Água",
+        date: "Julho 2006",
+        description: "Cerimônia de inauguração do projeto Água Para Todos no Bela Vista",
+        image: "/images/csela1.png" // ou use uma imagem padrão
+      },
+      {
+        title: "Visita do Grupo ALLEIMAR",
+        date: "Agosto 2006",
+        description: "Avaliação in loco do projeto financiado pelo grupo internacional",
+        image: "/images/csela1.png"
+      },
+      {
+        title: "Assinatura das Carteiras de Trabalho",
+        date: "Agosto 2007",
+        description: "Formalização dos primeiros funcionários do programa",
+        image: "/images/csela1.png"
+      },
+      {
+        title: "Inauguração do Escritório",
+        date: "Julho 2007",
+        description: "Abertura do escritório de arrecadação do Programa",
+        image: "/images/csela1.png"
+      },
+      {
+        title: "Pesquisa de Avaliação",
+        date: "Fevereiro 2008",
+        description: "Primeira pesquisa formal para avaliar o impacto do Programa",
+        image: "/images/csela1.png"
+      },
+      {
+        title: "Reunião Comunitária Anual",
+        date: "Julho (anual)",
+        description: "Encontro para prestação de contas e planejamento anual",
+        image: "/images/csela1.png"
+      },
+    ].map((event, index) => (
+      <Card key={index} className="overflow-hidden">
+        <div className="aspect-video relative">
+          <img
+            src={event.image || "/placeholder.svg"}
+            alt={event.title}
+            className="w-full h-32 object-cover"
+          />
         </div>
-      </div>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">{event.title}</CardTitle>
+          <CardDescription>{event.date}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{event.description}</p>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</div>
     </div>
   )
 }

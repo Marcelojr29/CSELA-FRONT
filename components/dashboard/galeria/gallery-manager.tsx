@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -35,104 +35,65 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { EditPhotoModal } from "./edit-photo-modal"
-import { GalleryManagerProps } from "@/interfaces/IGalleryManager"
+import { galleryService, type GalleryPhoto } from "@/lib/gallery-service"
 
-// Dados simulados das fotos
-const galleryPhotosData = [
-  {
-    id: 1,
-    imageUrl: "/placeholder.svg?height=300&width=400&text=Inauguração+sistema",
-    title: "Inauguração do novo sistema de captação",
-    description: "Cerimônia de inauguração do sistema de captação de água na comunidade Vila Esperança",
-    status: "ativa",
-    addedBy: "Admin",
-    addedAt: "2024-01-15",
-    views: 1250,
-  },
-  {
-    id: 2,
-    imageUrl: "/placeholder.svg?height=300&width=400&text=Voluntários+cisternas",
-    title: "Voluntários em ação",
-    description: "Equipe de voluntários trabalhando na construção de cisternas no semiárido",
-    status: "ativa",
-    addedBy: "Funcionário",
-    addedAt: "2024-01-10",
-    views: 980,
-  },
-  {
-    id: 3,
-    imageUrl: "/placeholder.svg?height=300&width=400&text=Crianças+água+potável",
-    title: "Alegria das crianças",
-    description: "Crianças da comunidade celebrando o acesso à água potável pela primeira vez",
-    status: "inativa",
-    addedBy: "Admin",
-    addedAt: "2024-01-08",
-    views: 750,
-  },
-  {
-    id: 4,
-    imageUrl: "/placeholder.svg?height=300&width=400&text=Workshop+educação",
-    title: "Educação ambiental",
-    description: "Workshop sobre uso consciente da água e preservação ambiental",
-    status: "ativa",
-    addedBy: "Funcionário",
-    addedAt: "2024-01-05",
-    views: 650,
-  },
-  {
-    id: 5,
-    imageUrl: "/placeholder.svg?height=300&width=400&text=Sistema+purificação",
-    title: "Tecnologia a serviço da vida",
-    description: "Novo sistema de purificação de água instalado na comunidade",
-    status: "inativa",
-    addedBy: "Admin",
-    addedAt: "2024-01-03",
-    views: 420,
-  },
-]
+interface GalleryManagerProps {
+  filter: "todas" | "ativas" | "inativas"
+}
 
 export function GalleryManager({ filter }: GalleryManagerProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [photos, setPhotos] = useState(galleryPhotosData)
-  const [editingPhoto, setEditingPhoto] = useState<any>(null)
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([])
+  const [editingPhoto, setEditingPhoto] = useState<GalleryPhoto | null>(null)
   const { toast } = useToast()
 
-  // Filtra as fotos com base no filtro e termo de busca
-  const filteredPhotos = photos
-    .filter((photo) => {
-      if (filter === "ativas") return photo.status === "ativa"
-      if (filter === "inativas") return photo.status === "inativa"
-      return true
-    })
-    .filter(
-      (photo) =>
-        photo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        photo.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        photo.addedBy.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
+  // Carregar fotos do serviço
+  useEffect(() => {
+    loadPhotos()
+  }, [filter])
+
+  const loadPhotos = () => {
+    const statusFilter = filter === "todas" ? undefined : filter === "ativas" ? "ativa" : "inativa"
+    const loadedPhotos = galleryService.getPhotos(statusFilter ? { status: statusFilter } : undefined)
+    setPhotos(loadedPhotos)
+  }
+
+  // Filtra as fotos com base no termo de busca
+  const filteredPhotos = photos.filter(
+    (photo) =>
+      photo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      photo.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      photo.addedBy.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   const togglePhotoStatus = (id: number) => {
-    setPhotos(
-      photos.map((photo) =>
-        photo.id === id ? { ...photo, status: photo.status === "ativa" ? "inativa" : "ativa" } : photo,
-      ),
-    )
-
-    const photo = photos.find((p) => p.id === id)
-    toast({
-      title: "Status alterado",
-      description: `A foto "${photo?.title}" foi ${photo?.status === "ativa" ? "desativada" : "ativada"}.`,
-    })
+    const updatedPhoto = galleryService.togglePhotoStatus(id)
+    if (updatedPhoto) {
+      loadPhotos() // Recarregar a lista
+      toast({
+        title: "Status alterado",
+        description: `A foto "${updatedPhoto.title}" foi ${updatedPhoto.status === "ativa" ? "ativada" : "desativada"}.`,
+      })
+    }
   }
 
   const deletePhoto = (id: number) => {
     const photo = photos.find((p) => p.id === id)
-    setPhotos(photos.filter((photo) => photo.id !== id))
-    toast({
-      title: "Foto excluída",
-      description: `A foto "${photo?.title}" foi excluída com sucesso.`,
-      variant: "destructive",
-    })
+    if (photo && galleryService.deletePhoto(id)) {
+      loadPhotos() // Recarregar a lista
+      toast({
+        title: "Foto excluída",
+        description: `A foto "${photo.title}" foi excluída com sucesso.`,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSavePhoto = (updatedPhoto: GalleryPhoto) => {
+    if (galleryService.updatePhoto(updatedPhoto.id, updatedPhoto)) {
+      loadPhotos() // Recarregar a lista
+      setEditingPhoto(null)
+    }
   }
 
   return (
@@ -200,7 +161,7 @@ export function GalleryManager({ filter }: GalleryManagerProps) {
                               {photo.status === "ativa" ? "Ativa" : "Inativa"}
                             </div>
                             <div>
-                              <span className="font-medium">Visualizações:</span> {photo.views}
+                              <span className="font-medium">Visualizações:</span> {photo.views || 0}
                             </div>
                           </div>
                         </div>
@@ -258,7 +219,7 @@ export function GalleryManager({ filter }: GalleryManagerProps) {
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{photo.description}</p>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Por {photo.addedBy}</span>
-                <span>{photo.views} views</span>
+                <span>{photo.views || 0} views</span>
               </div>
             </CardContent>
           </Card>
@@ -276,10 +237,7 @@ export function GalleryManager({ filter }: GalleryManagerProps) {
           photo={editingPhoto}
           open={!!editingPhoto}
           onOpenChange={(open) => !open && setEditingPhoto(null)}
-          onSave={(updatedPhoto) => {
-            setPhotos(photos.map((p) => (p.id === updatedPhoto.id ? updatedPhoto : p)))
-            setEditingPhoto(null)
-          }}
+          onSave={handleSavePhoto}
         />
       )}
     </div>

@@ -19,8 +19,7 @@ export default function MissionVisionValues() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Garantir o acesso à água potável e saneamento básico para comunidades em situação de vulnerabilidade,
-              promovendo saúde, dignidade e desenvolvimento sustentável.
+              Promover dignidade humana através de projetos educativos, de saúde e infraestrutura, empoderando moradores como agentes de transformação.
             </p>
           </CardContent>
         </Card>
@@ -32,8 +31,7 @@ export default function MissionVisionValues() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Um mundo onde todas as pessoas tenham acesso garantido à água limpa e saneamento adequado,
-              independentemente de sua condição socioeconômica ou localização geográfica.
+              Ser referência em desenvolvimento comunitário, com soluções autônomas e participativas.
             </p>
           </CardContent>
         </Card>
@@ -45,11 +43,9 @@ export default function MissionVisionValues() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-left text-muted-foreground">
-              <li>• Compromisso com a sustentabilidade</li>
-              <li>• Respeito às culturas locais</li>
-              <li>• Transparência em todas as ações</li>
-              <li>• Inovação e melhoria contínua</li>
-              <li>• Empoderamento comunitário</li>
+              <li>• Participação popular: Decisões coletivas e mutirões.</li>
+              <li>• Sustentabilidade: Taxas comunitárias e manutenção local.</li>
+              <li>• Justiça social: Foco em populações marginalizadas.</li>
             </ul>
           </CardContent>
         </Card>
