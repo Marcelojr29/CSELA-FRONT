@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin, Droplet } from "lucide-react"
+import Image from 'next/image'
 
 export default function Footer() {
   return (
@@ -8,8 +9,13 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <Link href="/" className="flex items-center gap-2">
-              <Droplet className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">CSELA</span>
+              <Image 
+                src="/images/cselaLogoPreta2.png" 
+                alt="CSELA Logo" 
+                width={24} 
+                height={24}
+                className="h-12 w-12"
+              />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               Levando água limpa e vida para comunidades necessitadas desde 2005.
@@ -53,11 +59,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/associe-se" className="text-muted-foreground hover:text-primary">
-                  Associe-se
-                </Link>
-              </li>
-              <li>
                 <Link href="/login" className="text-muted-foreground hover:text-primary">
                   Login
                 </Link>
@@ -78,11 +79,11 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <span className="text-muted-foreground">+55 (92) 99120-4411</span>
+                <span className="text-muted-foreground">+55 (92) 99504-8351</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-muted-foreground">contato@csela.org</span>
+                <span className="text-muted-foreground">sercsela321@gmail.com</span>
               </li>
             </ul>
           </div>

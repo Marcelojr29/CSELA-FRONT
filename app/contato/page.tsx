@@ -52,7 +52,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-medium">Telefone</h3>
                   <p className="text-sm text-muted-foreground">
-                    +55 (92) 99120-4411
+                    +55 (92) 99504-8351
                   </p>
                 </div>
               </div>
@@ -62,9 +62,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-medium">E-mail</h3>
                   <p className="text-sm text-muted-foreground">
-                    contato@csela.org
-                    <br />
-                    projetos@csela.org
+                    sercsela321@gmail.com
                   </p>
                 </div>
               </div>
@@ -89,10 +87,17 @@ export default function ContactPage() {
               <CardDescription>Localização da nossa sede</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full overflow-hidden rounded-md bg-muted">
-                <div className="flex h-full w-full items-center justify-center bg-muted">
-                  <p className="text-muted-foreground">Mapa da localização</p>
-                </div>
+              <div className="h-[300px] w-full overflow-hidden rounded-md">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.914318258758!2d-59.984583925019!3d-3.134371840238952!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x926c055b5e8a61c5%3A0x3bfcb8727338c4b8!2sR.%20Man%C3%A9%20Garrincha%2C%20258%20-%20Puraquequara%2C%20Manaus%20-%20AM%2C%2069009-305!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Localização da CSELA"
+                />
               </div>
             </CardContent>
           </Card>

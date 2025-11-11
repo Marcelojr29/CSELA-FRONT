@@ -102,40 +102,64 @@ export default function OurHistoryPage() {
   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
     {[
       {
-        title: "Inauguração do Sistema de Água",
-        date: "Julho 2006",
-        description: "Cerimônia de inauguração do projeto Água Para Todos no Bela Vista",
-        image: "/images/csela1.png" // ou use uma imagem padrão
+        title: "Ação Social da Comunidade Bela Vista",
+        date: "2022",
+        description: "Cerimônia de Ação Social da Comunidade Bela Vista",
+        image: "/images/Acao.jpeg"
       },
       {
-        title: "Visita do Grupo ALLEIMAR",
-        date: "Agosto 2006",
-        description: "Avaliação in loco do projeto financiado pelo grupo internacional",
-        image: "/images/csela1.png"
+        title: "Ação Social da Comunidade Bela Vista",
+        date: "2022",
+        description: "Cerimônia de Ação Social da Comunidade Bela Vista",
+        image: "/images/AcaoSocial.jpeg"
       },
       {
-        title: "Assinatura das Carteiras de Trabalho",
-        date: "Agosto 2007",
-        description: "Formalização dos primeiros funcionários do programa",
-        image: "/images/csela1.png"
+        title: "Nova estrutura do escritório CSELA da Comunidade Bela Vista",
+        date: "2022",
+        description: "Nova estrutura do escritório CSELA da Comunidade Bela Vista",
+        image: "/images/CselaFrente.jpeg"
       },
       {
-        title: "Inauguração do Escritório",
-        date: "Julho 2007",
-        description: "Abertura do escritório de arrecadação do Programa",
-        image: "/images/csela1.png"
+        title: "Nova estrutura dos poços da Comunidade Bela Vista",
+        date: "2022",
+        description: "Nova estrutura dos poços da Comunidade Bela Vista",
+        image: "/images/CselaPoco.jpeg"
       },
       {
-        title: "Pesquisa de Avaliação",
+        title: "Nova estrutura dos reservatórios da Comunidade Bela Vista",
         date: "Fevereiro 2008",
-        description: "Primeira pesquisa formal para avaliar o impacto do Programa",
-        image: "/images/csela1.png"
+        description: "Nova estrutura dos reservatórios da Comunidade Bela Vista",
+        image: "/images/CselaReservatorio.jpeg"
       },
       {
-        title: "Reunião Comunitária Anual",
-        date: "Julho (anual)",
-        description: "Encontro para prestação de contas e planejamento anual",
-        image: "/images/csela1.png"
+        title: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        date: "2024",
+        description: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        image: "/images/Escavacao2.jpeg"
+      },
+      {
+        title: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        date: "2024",
+        description: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        image: "/images/Escavacao3.jpeg"
+      },
+      {
+        title: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        date: "2024",
+        description: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        image: "/images/Escavacao4.jpeg"
+      },
+      {
+        title: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        date: "2024",
+        description: "Escavação para expansão dos poços da Comunidade Bela Vista",
+        image: "/images/Escavao1.jpeg"
+      },
+      {
+        title: "Presidente Edivaldo Barreto",
+        date: "2024",
+        description: "Presidente Edivaldo Barreto palestrando na ação social da Comunidade Bela Vista",
+        image: "/images/Padre.jpeg"
       },
     ].map((event, index) => (
       <Card key={index} className="overflow-hidden">
@@ -143,7 +167,7 @@ export default function OurHistoryPage() {
           <img
             src={event.image || "/placeholder.svg"}
             alt={event.title}
-            className="w-full h-32 object-cover"
+            className="w-full h-80 object-cover"
           />
         </div>
         <CardHeader className="pb-3">

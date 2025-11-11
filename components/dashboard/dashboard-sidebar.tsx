@@ -27,6 +27,7 @@ import { useAuth } from "@/components/auth/auth-context"
 import { cn } from "@/lib/utils"
 import { UserRole } from "@/types/user"
 import { SidebarItem } from "@/interfaces/ISidebarItem"
+import Image from 'next/image';
 
 const sidebarItems: SidebarItem[] = [
   {
@@ -50,12 +51,12 @@ const sidebarItems: SidebarItem[] = [
     icon: Users,
     permission: "cadastroMoradores",
   },
-  {
-    title: "Pontos de Distribuição",
-    href: "/dashboard/pontos-distribuicao",
-    icon: MapPin,
-    permission: "gerenciarPontos",
-  },
+  // {
+  //   title: "Pontos de Distribuição",
+  //   href: "/dashboard/pontos-distribuicao",
+  //   icon: MapPin,
+  //   permission: "gerenciarPontos",
+  // },
   {
     title: "Galeria",
     href: "/dashboard/galeria",
@@ -144,8 +145,14 @@ export function DashboardSidebar() {
     <div className="flex h-screen w-64 flex-col border-r bg-background">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <Droplet className="h-6 w-6 text-primary" />
-          <span className="font-bold">CSELA Admin</span>
+          <Image 
+            src="/images/cselaLogoPreta2.png" 
+            alt="CSELA Logo" 
+            width={24} 
+            height={24}
+            className="h-12 w-12"
+          />
+          <span className="font-bold">Admin</span>
         </Link>
       </div>
 

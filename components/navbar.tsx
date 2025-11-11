@@ -6,12 +6,13 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Droplet } from "lucide-react"
+import Image from "next/image" // Importe o componente Image
 
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Nossa História", href: "/nossa-historia" },
   { label: "Contato", href: "/contato" },
-  { label: "Associe-se", href: "/associe-se" },
+  // { label: "Associe-se", href: "/associe-se" },
 ]
 
 export default function Navbar() {
@@ -30,8 +31,14 @@ export default function Navbar() {
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
             <Link href="/" className="flex items-center gap-2 text-lg font-bold" onClick={() => setIsOpen(false)}>
-              <Droplet className="h-6 w-6 text-primary" />
-              <span>CSELA</span>
+              {/* Substitua também no menu mobile */}
+              <Image 
+                src="/images/cselaLogoPreta2.png" 
+                alt="CSELA Logo" 
+                width={24} 
+                height={24}
+                className="h-6 w-6"
+              />
             </Link>
             <nav className="mt-8 flex flex-col gap-4">
               {navItems.map((item) => (
@@ -57,9 +64,15 @@ export default function Navbar() {
           </SheetContent>
         </Sheet>
 
+        {/* Aqui está a substituição do Droplet pelo logo */}
         <Link href="/" className="flex items-center gap-2 md:mr-6">
-          <Droplet className="h-6 w-6 text-primary" />
-          <span className="hidden font-bold sm:inline-block">CSELA</span>
+          <Image 
+            src="/images/cselaLogoPreta2.png" 
+            alt="CSELA Logo" 
+            width={24} 
+            height={24}
+            className="h-12 w-16"
+          />
         </Link>
 
         <nav className="hidden flex-1 items-center justify-between md:flex">

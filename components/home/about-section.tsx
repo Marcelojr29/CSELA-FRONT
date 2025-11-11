@@ -15,7 +15,7 @@ export default function AboutSection() {
             Ao longo de mais de 50 anos, o CSELA transformou-se em uma referência em desenvolvimento comunitário, atuando em 11 comunidades do Bairro Antônio Aleixo através de quatro dimensões principais: <strong> Pedagógica, Geração de Renda, Saúde da População e Habitação</strong>.
           </p>
           <p className="mt-4 text-muted-foreground">
-            Destaque para projetos emblemáticos como o <strong>"Água Para Todos"</strong> que levou água encanada para 800 famílias, demonstrando a força da organização popular e autogestão comunitária.
+            <strong>1.300</strong> familias, água para todos durante os anos de 2004 à 2025.
           </p>
           <Button className="mt-6 bg-transparent" variant="outline" asChild>
             <Link href="/nossa-historia">Conheça Nossa História Completa</Link>
@@ -25,7 +25,7 @@ export default function AboutSection() {
           <CardContent className="p-0">
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted">
               <img
-                src="/images/csela1.png"
+                src="/images/CselaFrente.jpeg"
                 alt="Projeto de distribuição de água em comunidade rural"
                 className="h-full w-full object-cover"
               />
