@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Plus } from "lucide-react"
 import { UsuariosTable } from "@/components/dashboard/admin/usuarios-table"
-import { CadastroUsuarioModal } from "@/components/dashboard/admin/cadastro-usuario-modal"
+import { CriarUsuarioModal } from "@/components/dashboard/admin/criar-usuario-modal"
 
 export default function UsuariosPage() {
   return (
@@ -14,12 +14,12 @@ export default function UsuariosPage() {
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
-          <CadastroUsuarioModal>
+          <CriarUsuarioModal>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               Novo Usuário
             </Button>
-          </CadastroUsuarioModal>
+          </CriarUsuarioModal>
         </div>
       </div>
 
