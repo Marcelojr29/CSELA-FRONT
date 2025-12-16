@@ -238,4 +238,65 @@ export const profilesApi = {
   },
 }
 
+// Utilitários para moradores
+export const moradoresApi = {
+  async getMoradores(queryString = '') {
+    const endpoint = queryString ? `/moradores${queryString}` : '/moradores'
+    return apiClient.get(endpoint, true)
+  },
+
+  async getMoradorById(id: string) {
+    return apiClient.get(`/moradores/${id}`, true)
+  },
+
+  async getMoradorByCpf(cpf: string) {
+    const cpfLimpo = cpf.replace(/\D/g, '')
+    return apiClient.get(`/moradores/search/cpf/${cpfLimpo}`, true)
+  },
+
+  async getMoradorByRg(rg: string) {
+    const rgLimpo = rg.replace(/\D/g, '')
+    return apiClient.get(`/moradores/search/rg/${rgLimpo}`, true)
+  },
+
+  async createMorador(moradorData: {
+    nome: string
+    descricao?: string
+    rg: string
+    cpf: string
+    dataDeNascimento: string
+    rua: string
+    numeroResidencia: string
+    bairro: string
+    cep: string
+    telefone: string
+    tipoResidencia: string
+    quantidadePessoas: number
+    status?: string
+    dataUltimoPagamento?: string
+  }) {
+    return apiClient.post('/moradores', moradorData, true)
+  },
+
+  async updateMorador(id: string, moradorData: any) {
+    return apiClient.patch(`/moradores/${id}`, moradorData, true)
+  },
+
+  async updateStatus(id: string, status: string) {
+    return apiClient.patch(`/moradores/${id}/status`, { status }, true)
+  },
+
+  async registrarPagamento(id: string, dataPagamento: string) {
+    return apiClient.patch(`/moradores/${id}/pagamento`, { dataPagamento }, true)
+  },
+
+  async deleteMorador(id: string) {
+    return apiClient.delete(`/moradores/${id}`, true)
+  },
+
+  async getStatistics() {
+    return apiClient.get('/moradores/statistics', true)
+  },
+}
+
 export default apiClient
