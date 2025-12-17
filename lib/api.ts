@@ -299,4 +299,52 @@ export const moradoresApi = {
   },
 }
 
+/**
+ * Endpoints para Finanças
+ */
+export const financasApi = {
+  async getPagamentos(mes: number, ano: number) {
+    return apiClient.get(`/financas/pagamentos?mes=${mes}&ano=${ano}`, true)
+  },
+}
+
+/**
+ * Endpoints para Pagamentos de Moradores
+ */
+export const pagamentosApi = {
+  async getCarneDigital(moradorId: string, ano?: number) {
+    const anoParam = ano ? `?ano=${ano}` : ''
+    return apiClient.get(`/moradores/${moradorId}/pagamentos/carne-digital${anoParam}`, true)
+  },
+
+  async getHistorico(moradorId: string) {
+    return apiClient.get(`/moradores/${moradorId}/pagamentos/historico`, true)
+  },
+
+  async registrarPagamento(moradorId: string, pagamentoData: any) {
+    return apiClient.post(`/moradores/${moradorId}/pagamentos/registrar`, pagamentoData, true)
+  },
+
+  async listarPagamentos(moradorId: string, filtros?: any) {
+    const queryParams = new URLSearchParams()
+    if (filtros) {
+      Object.entries(filtros).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          queryParams.append(key, value.toString())
+        }
+      })
+    }
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ''
+    return apiClient.get(`/moradores/${moradorId}/pagamentos${queryString}`, true)
+  },
+
+  async atualizarPagamento(moradorId: string, pagamentoId: string, dados: any) {
+    return apiClient.patch(`/moradores/${moradorId}/pagamentos/${pagamentoId}`, dados, true)
+  },
+
+  async excluirPagamento(moradorId: string, pagamentoId: string) {
+    return apiClient.delete(`/moradores/${moradorId}/pagamentos/${pagamentoId}`, true)
+  },
+}
+
 export default apiClient
