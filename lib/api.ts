@@ -361,4 +361,22 @@ export const homeApi = {
   },
 }
 
+export const administracaoApi = {
+  async getMetricas(mes?: number, ano?: number) {
+    const queryParams = new URLSearchParams()
+    if (mes) queryParams.append('mes', mes.toString())
+    if (ano) queryParams.append('ano', ano.toString())
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ''
+    return apiClient.get(`/administracao/metricas${queryString}`, true)
+  },
+
+  async getDashboardMensal(mes: number, ano: number) {
+    return apiClient.get(`/administracao/dashboard-mensal?mes=${mes}&ano=${ano}`, true)
+  },
+
+  async getDashboardAnual(ano: number) {
+    return apiClient.get(`/administracao/dashboard-anual?ano=${ano}`, true)
+  },
+}
+
 export default apiClient

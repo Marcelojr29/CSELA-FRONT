@@ -22,7 +22,7 @@ export function RegistroPagamentoForm({ moradorId, onPagamentoRegistrado }: Regi
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [mesReferencia, setMesReferencia] = useState("")
-  const [valor, setValor] = useState("150.00")
+  const [valor, setValor] = useState("50.00")
   const [comprovante, setComprovante] = useState<File | null>(null)
   const [observacao, setObservacao] = useState("")
   const [mesesDisponiveis, setMesesDisponiveis] = useState<MesDisponivel[]>([])
@@ -42,7 +42,7 @@ export function RegistroPagamentoForm({ moradorId, onPagamentoRegistrado }: Regi
             .map((item: any) => ({
               value: `${String(item.mes).padStart(2, '0')}/${item.ano || response.data.ano}`,
               label: `${item.nomeCompleto} ${item.ano || response.data.ano}`,
-              valorSugerido: item.valor || 150.00
+              valorSugerido: item.valor || 50.00
             }))
           
           setMesesDisponiveis(mesesPendentes)
