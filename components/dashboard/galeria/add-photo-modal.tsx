@@ -19,7 +19,7 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, Upload, X } from "lucide-react"
 import { useAuth } from "@/components/auth/auth-context"
-import { galleryService } from "@/lib/gallery-service"
+import { galeriaApi } from "@/lib/api"
 
 interface AddPhotoModalProps {
   children: React.ReactNode
@@ -100,9 +100,11 @@ export function AddPhotoModal({ children, onPhotoAdded }: AddPhotoModalProps) {
     setIsSubmitting(true)
 
     try {
+      // Em produção, você faria upload da imagem para o servidor aqui
+      // Por enquanto, vamos usar o preview URL (base64) ou um placeholder
       const imageUrl = previewUrl || "/placeholder.svg"
 
-      const newPhoto = galleryService.addPhoto({
+      await galeriaApi.createPhoto({
         imageUrl,
         title: title.trim(),
         description: description.trim(),
@@ -122,7 +124,7 @@ export function AddPhotoModal({ children, onPhotoAdded }: AddPhotoModalProps) {
 
       toast({
         title: "Foto adicionada com sucesso",
-        description: `A foto "${newPhoto.title}" foi adicionada à galeria.`,
+        description: `A foto "${title}" foi adicionada à galeria.`,
       })
 
       // Notificar componente pai para atualizar a lista

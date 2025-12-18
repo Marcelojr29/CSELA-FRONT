@@ -379,4 +379,59 @@ export const administracaoApi = {
   },
 }
 
+export const galeriaApi = {
+  async getPhotos(page: number = 1, limit: number = 100, search?: string, status?: 'ativa' | 'inativa') {
+    const queryParams = new URLSearchParams()
+    queryParams.append('page', page.toString())
+    queryParams.append('limit', limit.toString())
+    if (search) queryParams.append('search', search)
+    if (status) queryParams.append('status', status)
+    return apiClient.get(`/galeria?${queryParams.toString()}`, true)
+  },
+
+  async getActivePhotos() {
+    return apiClient.get('/galeria/ativas', true)
+  },
+
+  async getStatistics() {
+    return apiClient.get('/galeria/statistics', true)
+  },
+
+  async getPhotoById(id: number) {
+    return apiClient.get(`/galeria/${id}`, true)
+  },
+
+  async createPhoto(data: {
+    imageUrl: string
+    title: string
+    description: string
+    status?: 'ativa' | 'inativa'
+    addedBy: string
+  }) {
+    return apiClient.post('/galeria', data, true)
+  },
+
+  async updatePhoto(id: number, data: Partial<{
+    imageUrl: string
+    title: string
+    description: string
+    status: 'ativa' | 'inativa'
+    addedBy: string
+  }>) {
+    return apiClient.patch(`/galeria/${id}`, data, true)
+  },
+
+  async togglePhotoStatus(id: number) {
+    return apiClient.patch(`/galeria/${id}/status`, {}, true)
+  },
+
+  async incrementView(id: number) {
+    return apiClient.patch(`/galeria/${id}/view`, {}, true)
+  },
+
+  async deletePhoto(id: number) {
+    return apiClient.delete(`/galeria/${id}`, true)
+  },
+}
+
 export default apiClient

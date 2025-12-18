@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -6,6 +9,12 @@ import { GalleryManager } from "@/components/dashboard/galeria/gallery-manager"
 import { AddPhotoModal } from "@/components/dashboard/galeria/add-photo-modal"
 
 export default function GaleriaPage() {
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handlePhotoAdded = () => {
+    setRefreshKey(prev => prev + 1)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -15,7 +24,7 @@ export default function GaleriaPage() {
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
-          <AddPhotoModal>
+          <AddPhotoModal onPhotoAdded={handlePhotoAdded}>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               Adicionar Foto
@@ -38,7 +47,7 @@ export default function GaleriaPage() {
               <CardDescription>Gerencie as fotos que aparecem no carrossel da página inicial do site</CardDescription>
             </CardHeader>
             <CardContent>
-              <GalleryManager filter="todas" />
+              <GalleryManager key={`todas-${refreshKey}`} filter="todas" />
             </CardContent>
           </Card>
         </TabsContent>
@@ -50,7 +59,7 @@ export default function GaleriaPage() {
               <CardDescription>Fotos que estão sendo exibidas no carrossel do site</CardDescription>
             </CardHeader>
             <CardContent>
-              <GalleryManager filter="ativas" />
+              <GalleryManager key={`ativas-${refreshKey}`} filter="ativas" />
             </CardContent>
           </Card>
         </TabsContent>
@@ -62,7 +71,7 @@ export default function GaleriaPage() {
               <CardDescription>Fotos que não estão sendo exibidas no site</CardDescription>
             </CardHeader>
             <CardContent>
-              <GalleryManager filter="inativas" />
+              <GalleryManager key={`inativas-${refreshKey}`} filter="inativas" />
             </CardContent>
           </Card>
         </TabsContent>

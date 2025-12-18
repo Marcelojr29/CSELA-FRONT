@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { MoreHorizontal, Search, Eye, Edit, Trash, ToggleLeft, ToggleRight } from "lucide-react"
+import { MoreHorizontal, Search, Eye, Edit, Trash, ToggleLeft, ToggleRight, Loader2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +35,19 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { EditPhotoModal } from "./edit-photo-modal"
-import { galleryService, type GalleryPhoto } from "@/lib/gallery-service"
+import { galeriaApi } from "@/lib/api"
+
+interface GalleryPhoto {
+  id: number
+  imageUrl: string
+  title: string
+  description: string
+  status: "ativa" | "inativa"
+  addedBy: string
+  views: number
+  createdAt: string
+  updatedAt: string
+}
 
 interface GalleryManagerProps {
   filter: "todas" | "ativas" | "inativas"
@@ -45,17 +57,33 @@ export function GalleryManager({ filter }: GalleryManagerProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [photos, setPhotos] = useState<GalleryPhoto[]>([])
   const [editingPhoto, setEditingPhoto] = useState<GalleryPhoto | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
 
-  // Carregar fotos do serviço
+  // Carregar fotos da API
   useEffect(() => {
     loadPhotos()
   }, [filter])
 
-  const loadPhotos = () => {
-    const statusFilter = filter === "todas" ? undefined : filter === "ativas" ? "ativa" : "inativa"
-    const loadedPhotos = galleryService.getPhotos(statusFilter ? { status: statusFilter } : undefined)
-    setPhotos(loadedPhotos)
+  const loadPhotos = async () => {
+    try {
+      setIsLoading(true)
+      const statusFilter = filter === "todas" ? undefined : filter === "ativas" ? "ativa" : "inativa"
+      const response = await galeriaApi.getPhotos(1, 100, undefined, statusFilter)
+      
+      if (response.data && response.data.data) {
+        setPhotos(response.data.data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar fotos:', error)
+      toast({
+        title: "Erro ao carregar fotos",
+        description: "Não foi possível carregar as fotos da galeria.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Filtra as fotos com base no termo de busca
@@ -66,34 +94,77 @@ export function GalleryManager({ filter }: GalleryManagerProps) {
       photo.addedBy.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const togglePhotoStatus = (id: number) => {
-    const updatedPhoto = galleryService.togglePhotoStatus(id)
-    if (updatedPhoto) {
-      loadPhotos() // Recarregar a lista
+  const togglePhotoStatus = async (id: number) => {
+    try {
+      const response = await galeriaApi.togglePhotoStatus(id)
+      if (response.data) {
+        loadPhotos() // Recarregar a lista
+        toast({
+          title: "Status alterado",
+          description: `A foto foi ${response.data.status === "ativa" ? "ativada" : "desativada"}.`,
+        })
+      }
+    } catch (error) {
+      console.error('Erro ao alterar status:', error)
       toast({
-        title: "Status alterado",
-        description: `A foto "${updatedPhoto.title}" foi ${updatedPhoto.status === "ativa" ? "ativada" : "desativada"}.`,
-      })
-    }
-  }
-
-  const deletePhoto = (id: number) => {
-    const photo = photos.find((p) => p.id === id)
-    if (photo && galleryService.deletePhoto(id)) {
-      loadPhotos() // Recarregar a lista
-      toast({
-        title: "Foto excluída",
-        description: `A foto "${photo.title}" foi excluída com sucesso.`,
+        title: "Erro ao alterar status",
+        description: "Não foi possível alterar o status da foto.",
         variant: "destructive",
       })
     }
   }
 
-  const handleSavePhoto = (updatedPhoto: GalleryPhoto) => {
-    if (galleryService.updatePhoto(updatedPhoto.id, updatedPhoto)) {
+  const deletePhoto = async (id: number) => {
+    try {
+      const photo = photos.find((p) => p.id === id)
+      await galeriaApi.deletePhoto(id)
+      loadPhotos() // Recarregar a lista
+      toast({
+        title: "Foto excluída",
+        description: `A foto "${photo?.title}" foi excluída com sucesso.`,
+        variant: "destructive",
+      })
+    } catch (error) {
+      console.error('Erro ao excluir foto:', error)
+      toast({
+        title: "Erro ao excluir foto",
+        description: "Não foi possível excluir a foto.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSavePhoto = async (updatedPhoto: GalleryPhoto) => {
+    try {
+      await galeriaApi.updatePhoto(updatedPhoto.id, {
+        imageUrl: updatedPhoto.imageUrl,
+        title: updatedPhoto.title,
+        description: updatedPhoto.description,
+        status: updatedPhoto.status,
+        addedBy: updatedPhoto.addedBy,
+      })
       loadPhotos() // Recarregar a lista
       setEditingPhoto(null)
+      toast({
+        title: "Foto atualizada",
+        description: "A foto foi atualizada com sucesso.",
+      })
+    } catch (error) {
+      console.error('Erro ao atualizar foto:', error)
+      toast({
+        title: "Erro ao atualizar foto",
+        description: "Não foi possível atualizar a foto.",
+        variant: "destructive",
+      })
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -154,7 +225,7 @@ export function GalleryManager({ filter }: GalleryManagerProps) {
                             </div>
                             <div>
                               <span className="font-medium">Data:</span>{" "}
-                              {new Date(photo.addedAt).toLocaleDateString("pt-BR")}
+                              {new Date(photo.createdAt).toLocaleDateString("pt-BR")}
                             </div>
                             <div>
                               <span className="font-medium">Status:</span>{" "}
