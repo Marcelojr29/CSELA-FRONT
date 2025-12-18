@@ -329,7 +329,7 @@ export const pagamentosApi = {
     const queryParams = new URLSearchParams()
     if (filtros) {
       Object.entries(filtros).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
+        if (value !== undefined && value !== null && value !== '') {
           queryParams.append(key, value.toString())
         }
       })
@@ -344,6 +344,20 @@ export const pagamentosApi = {
 
   async excluirPagamento(moradorId: string, pagamentoId: string) {
     return apiClient.delete(`/moradores/${moradorId}/pagamentos/${pagamentoId}`, true)
+  },
+}
+
+export const homeApi = {
+  async getDashboard() {
+    return apiClient.get('/home/dashboard', true)
+  },
+
+  async getArrecadacaoMensal() {
+    return apiClient.get('/home/arrecadacao-mensal', true)
+  },
+
+  async getUltimosPagamentos() {
+    return apiClient.get('/home/ultimos-pagamentos', true)
   },
 }
 
