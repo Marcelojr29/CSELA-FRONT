@@ -146,7 +146,7 @@ export function DashboardSidebar() {
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
           <Image 
-            src="/images/cselaLogoPreta2.png" 
+            src="/images/cselaLogo.png" 
             alt="CSELA Logo" 
             width={24} 
             height={24}

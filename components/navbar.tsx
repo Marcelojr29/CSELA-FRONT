@@ -33,7 +33,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center gap-2 text-lg font-bold" onClick={() => setIsOpen(false)}>
               {/* Substitua também no menu mobile */}
               <Image 
-                src="/images/cselaLogoPreta2.png" 
+                src="/images/cselaLogo.png" 
                 alt="CSELA Logo" 
                 width={24} 
                 height={24}
@@ -67,7 +67,7 @@ export default function Navbar() {
         {/* Aqui está a substituição do Droplet pelo logo */}
         <Link href="/" className="flex items-center gap-2 md:mr-6">
           <Image 
-            src="/images/cselaLogoPreta2.png" 
+            src="/images/cselaLogo.png" 
             alt="CSELA Logo" 
             width={24} 
             height={24}
