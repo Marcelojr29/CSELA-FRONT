@@ -11,10 +11,6 @@ export default function MoradoresPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Moradores</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
           <Button size="sm" asChild>
             <Link href="/dashboard/moradores/cadastro">
               <Plus className="mr-2 h-4 w-4" />

@@ -20,10 +20,6 @@ export default function GaleriaPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Galeria de Fotos</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
           <AddPhotoModal onPhotoAdded={handlePhotoAdded}>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />

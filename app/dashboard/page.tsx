@@ -241,16 +241,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="notifications" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
-            </CardHeader>
-          </Card>
-        </TabsContent>
         <TabsContent value="payments" className="space-y-4">
           <Card>
             <CardHeader>
