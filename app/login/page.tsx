@@ -4,21 +4,51 @@ import { CardFooter } from "@/components/ui/card"
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/auth/auth-context"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const { login, isLoading } = useAuth()
-  const [email, setEmail] = useState("admin@csela.org")
-  const [password, setPassword] = useState("admin123")
+  const { login, isLoading, user } = useAuth()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  // Redirecionar se já estiver logado
+  useEffect(() => {
+    if (user && !isLoading) {
+      router.push("/dashboard")
+    }
+  }, [user, isLoading, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    await login(email, password)
+    setError(null)
+    
+    try {
+      await login(email, password)
+    } catch (error: any) {
+      setError(error.message || "Erro ao fazer login. Tente novamente.")
+    }
+  }
+
+  // Mostrar loading enquanto verifica se já está logado
+  if (isLoading) {
+    return (
+      <div className="container flex h-[calc(100vh-80px)] items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+          <span className="text-sm text-muted-foreground">Verificando autenticação...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -31,6 +61,12 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleLogin}>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -54,6 +90,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
+                  placeholder="Sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -70,21 +107,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col">
           <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Credenciais de acesso:</p>
-            <div className="mt-2 flex flex-wrap justify-center gap-2">
-              <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                Admin: admin@csela.org
-              </span>
-              <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                Contador: contador@csela.org
-              </span>
-              <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                Funcionário: funcionario@csela.org
-              </span>
-              <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                Senha: admin123
-              </span>
-            </div>
+            <p>Entre em contato com o administrador para obter suas credenciais de acesso.</p>
           </div>
         </CardFooter>
       </Card>

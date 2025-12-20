@@ -16,6 +16,49 @@ import { UserRole } from "@/types/user"
 import { VisualizarPerfilModalProps } from "@/interfaces/IVisualizarPerfilModal"
 
 export function VisualizarPerfilModal({ perfil, open, onOpenChange }: VisualizarPerfilModalProps) {
+  const checkPermission = (permissoes: any, permissao: any, categoria: any) => {
+    let response = false;
+    switch (categoria) {
+      case "Gestão de Usuários":
+        if (permissao === "cadastroUsuarios") {
+          response = permissoes.user_management.permissions.includes("cadastro_usuario");
+        }
+        if (permissao === "gerenciarPerfis") {
+          response = permissoes.user_management.permissions.includes("cadastro_perfil");
+        }
+        break;
+      case "Operações":
+        if (permissao === "cadastroMoradores") {
+          response = permissoes.operation.permissions.includes("cadastro_moradores");
+        }
+        if (permissao === "registrarPagamentos") {
+          response = permissoes.operation.permissions.includes("registrar_pagamentos");
+        }
+        if (permissao === "gerenciarPontos") {
+          response = permissoes.operation.permissions.includes("gerenciar_pontos");
+        }
+        break;
+      case "Relatórios e Análises":
+        if (permissao === "visualizarDashboards") {
+          response = permissoes.reports_analytics.permissions.includes("visualizar_dashboards");
+        }
+        if (permissao === "exportarRelatorios") {
+          response = permissoes.reports_analytics.permissions.includes("exportar_relatorios");
+        }
+        break;
+      case "Módulos Avançados":
+        if (permissao === "acessoFinancas") {
+          response = permissoes.advanced.permissions.includes("acesso_financas");
+        }
+        if (permissao === "acessoAdministracao") {
+          response = permissoes.advanced.permissions.includes("acesso_administracao");
+        }
+        break;
+      default:
+        response = false;
+      }
+    return response;
+  };
   // Função para obter a cor do badge com base no perfil
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
@@ -70,7 +113,7 @@ export function VisualizarPerfilModal({ perfil, open, onOpenChange }: Visualizar
                             {permissoesDescricoes[permissao as keyof typeof permissoesDescricoes]}
                           </td>
                           <td className="px-4 py-2 text-center">
-                            <PermissionStatus hasPermission={perfil.permissoes[permissao]} />
+                            <PermissionStatus hasPermission={checkPermission(perfil.permissoes, permissao, categoria)} />
                           </td>
                         </tr>
                       ))}

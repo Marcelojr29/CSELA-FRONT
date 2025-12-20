@@ -5,15 +5,17 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Edit, CreditCard, FileText } from "lucide-react"
+import { ArrowLeft, Edit, CreditCard, FileText, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { Morador } from "@/interfaces/IMorador"
+import { useMoradoresAPI, type Morador } from "@/hooks/use-moradores-api"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function MoradorDetalhePage() {
   const params = useParams()
   const router = useRouter()
+  const { toast } = useToast()
   const [morador, setMorador] = useState<Morador | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { isLoading, error, buscarMoradorPorId } = useMoradoresAPI()
 
   useEffect(() => {
     const id = params.id as string
@@ -24,42 +26,23 @@ export default function MoradorDetalhePage() {
       return
     }
 
-    // Simula busca do morador
-    setTimeout(() => {
-      // Dados mockados para demonstração
-      const moradorMock: Morador = {
-        id: id,
-        nome: "João Silva Santos",
-        rg: "1234567-8",
-        cpf: "123.456.789-00",
-        dataNascimento: "1985-03-15",
-        estadoCivil: "Casado",
-        endereco: {
-          rua: "Rua das Flores",
-          numero: "123",
-          comunidade: "PURAQUEQUARA (Com. Bela Vista)",
-          cep: "69000-000",
-        },
-        contato: {
-          telefone: "(92) 99999-9999",
-          email: "joao.silva@email.com",
-        },
-        residencia: {
-          tipo: "Alvenaria",
-          qtdPessoas: 4,
-          tempoResidencia: "2020-01-15",
-        },
-        observacao: "Morador pontual nos pagamentos",
-        status: "ativo",
-        dataCadastro: "2024-01-15",
+    const carregarMorador = async () => {
+      const moradorData = await buscarMoradorPorId(id)
+      if (moradorData) {
+        setMorador(moradorData)
+      } else if (error) {
+        toast({
+          title: "Erro ao carregar morador",
+          description: error.message,
+          variant: "destructive",
+        })
       }
+    }
 
-      setMorador(moradorMock)
-      setLoading(false)
-    }, 1000)
-  }, [params.id, router])
+    carregarMorador()
+  }, [params.id, router, buscarMoradorPorId, error, toast])
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2">
@@ -68,13 +51,16 @@ export default function MoradorDetalhePage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold">Carregando...</h1>
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <h1 className="text-3xl font-bold">Carregando...</h1>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!morador) {
+  if (!morador && !isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2">
@@ -87,7 +73,9 @@ export default function MoradorDetalhePage() {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">O morador solicitado não foi encontrado.</p>
+            <p className="text-center text-muted-foreground">
+              {error ? error.message : "O morador solicitado não foi encontrado."}
+            </p>
             <div className="flex justify-center mt-4">
               <Button asChild>
                 <Link href="/dashboard/moradores">Voltar para lista</Link>
@@ -114,8 +102,8 @@ export default function MoradorDetalhePage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Badge variant={morador.status === "ativo" ? "default" : "secondary"}>
-            {morador.status === "ativo" ? "Ativo" : "Inativo"}
+          <Badge variant={morador.status === "Adimplente" ? "default" : "destructive"}>
+            {morador.status}
           </Badge>
         </div>
       </div>
@@ -133,19 +121,19 @@ export default function MoradorDetalhePage() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">RG</p>
-              <p>{morador.rg}</p>
+              <p>{morador.rg.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, '$1.$2.$3-$4')}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">CPF</p>
-              <p>{morador.cpf}</p>
+              <p>{morador.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Data de Nascimento</p>
-              <p>{new Date(morador.dataNascimento).toLocaleDateString("pt-BR")}</p>
+              <p>{new Date(morador.dataDeNascimento).toLocaleDateString("pt-BR")}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Estado Civil</p>
-              <p>{morador.estadoCivil}</p>
+              <p className="text-sm font-medium text-muted-foreground">Idade</p>
+              <p>{new Date().getFullYear() - new Date(morador.dataDeNascimento).getFullYear()} anos</p>
             </div>
           </CardContent>
         </Card>
@@ -158,19 +146,19 @@ export default function MoradorDetalhePage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Rua</p>
-              <p>{morador.endereco.rua}</p>
+              <p>{morador.rua}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Número</p>
-              <p>{morador.endereco.numero}</p>
+              <p>{morador.numeroResidencia}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Comunidade</p>
-              <p>{morador.endereco.comunidade}</p>
+              <p className="text-sm font-medium text-muted-foreground">Bairro</p>
+              <p>{morador.bairro}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">CEP</p>
-              <p>{morador.endereco.cep}</p>
+              <p>{morador.cep.replace(/(\d{5})(\d{3})/, '$1-$2')}</p>
             </div>
           </CardContent>
         </Card>
@@ -183,11 +171,7 @@ export default function MoradorDetalhePage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Telefone</p>
-              <p>{morador.contato.telefone}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">E-mail</p>
-              <p>{morador.contato.email || "Não informado"}</p>
+              <p>{morador.telefone}</p>
             </div>
           </CardContent>
         </Card>
@@ -200,28 +184,38 @@ export default function MoradorDetalhePage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Tipo de Residência</p>
-              <p>{morador.residencia.tipo}</p>
+              <p>{morador.tipoResidencia}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Quantidade de Pessoas</p>
-              <p>{morador.residencia.qtdPessoas} pessoas</p>
+              <p>{morador.quantidadePessoas} pessoas</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Reside desde</p>
-              <p>{new Date(morador.residencia.tempoResidencia).toLocaleDateString("pt-BR")}</p>
+              <p className="text-sm font-medium text-muted-foreground">Tempo de Residência</p>
+              <p>{morador.tempoResidencia} meses</p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Cadastrado em</p>
+              <p>{new Date(morador.criadoEm).toLocaleDateString("pt-BR")}</p>
+            </div>
+            {morador.dataUltimoPagamento && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Último Pagamento</p>
+                <p>{new Date(morador.dataUltimoPagamento).toLocaleDateString("pt-BR")}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Observações */}
-      {morador.observacao && (
+      {morador.descricao && (
         <Card>
           <CardHeader>
             <CardTitle>Observações</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{morador.observacao}</p>
+            <p>{morador.descricao}</p>
           </CardContent>
         </Card>
       )}
@@ -235,7 +229,7 @@ export default function MoradorDetalhePage() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             <Button asChild>
-              <Link href={`/dashboard/moradores/${morador.id}/edit`}>
+              <Link href={`/dashboard/moradores/${morador.id}/editar`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Editar Dados
               </Link>

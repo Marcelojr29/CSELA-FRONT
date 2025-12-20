@@ -1,21 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PerfisTable } from "@/components/dashboard/admin/perfis-table"
 import { Shield, Plus, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CriarPerfilModal } from "@/components/dashboard/admin/criar-perfil-modal"
 import { useToast } from "@/components/ui/use-toast"
-import { usePerfis } from "@/hooks/use-perfis"
+import { usePerfisAPI } from "@/hooks/use-perfis-api"
 
 export default function PerfisPage() {
   const { toast } = useToast()
-  const { perfis, isLoading, error, refetch } = usePerfis()
+  const { 
+    perfis, 
+    isLoading, 
+    error, 
+    fetchPerfis,
+    refresh 
+  } = usePerfisAPI()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  // Carregar perfis ao montar o componente
+  useEffect(() => {
+    fetchPerfis()
+  }, [])
+
   const handleRefresh = async () => {
-    await refetch()
+    await refresh()
     toast({
       title: "Dados atualizados",
       description: "A lista de perfis foi atualizada com sucesso.",

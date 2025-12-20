@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Download, Plus } from "lucide-react"
 import { MoradoresTable } from "@/components/dashboard/moradores/moradores-table"
-import { ControlePagamentoTable } from "@/components/dashboard/moradores/controle-pagamento-table"
 import Link from "next/link"
 
 export default function MoradoresPage() {
@@ -30,7 +29,6 @@ export default function MoradoresPage() {
           <TabsTrigger value="todos">Todos</TabsTrigger>
           <TabsTrigger value="adimplentes">Adimplentes</TabsTrigger>
           <TabsTrigger value="inadimplentes">Inadimplentes</TabsTrigger>
-          <TabsTrigger value="controle-pagamento">Controle de Pagamento</TabsTrigger>
         </TabsList>
 
         <TabsContent value="todos" className="space-y-4">
@@ -65,18 +63,6 @@ export default function MoradoresPage() {
             </CardHeader>
             <CardContent>
               <MoradoresTable filter="inadimplentes" />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="controle-pagamento" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Controle de Pagamento</CardTitle>
-              <CardDescription>Gerencie os pagamentos mensais dos moradores</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ControlePagamentoTable />
             </CardContent>
           </Card>
         </TabsContent>

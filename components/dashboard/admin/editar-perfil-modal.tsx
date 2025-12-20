@@ -20,12 +20,12 @@ import { Loader2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { categoriaPermissoes, permissoesDescricoes } from "./perfis-table"
-import { usePerfis } from "@/hooks/use-perfis"
+import { usePerfisAPI } from "@/hooks/use-perfis-api"
 import { EditarPerfilModalProps } from "@/interfaces/IEditarPerfilModalProps"
 
 export function EditarPerfilModal({ perfil, open, onOpenChange }: EditarPerfilModalProps) {
   const { toast } = useToast()
-  const { updatePerfil } = usePerfis()
+  const { atualizarPerfil } = usePerfisAPI()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nome, setNome] = useState("")
   const [descricao, setDescricao] = useState("")
@@ -41,11 +41,69 @@ export function EditarPerfilModal({ perfil, open, onOpenChange }: EditarPerfilMo
     acessoAdministracao: false,
   })
 
+  // Função para verificar se uma permissão específica existe no perfil
+  const checkPermission = (permissoesPerfil: any, permissao: string, categoria: string) => {
+    if (!permissoesPerfil) return false;
+    
+    let response = false;
+    switch (categoria) {
+      case "Gestão de Usuários":
+        if (permissao === "cadastroUsuarios") {
+          response = permissoesPerfil.user_management?.permissions?.includes("cadastro_usuario") || false;
+        }
+        if (permissao === "gerenciarPerfis") {
+          response = permissoesPerfil.user_management?.permissions?.includes("cadastro_perfil") || false;
+        }
+        break;
+      case "Operações":
+        if (permissao === "cadastroMoradores") {
+          response = permissoesPerfil.operation?.permissions?.includes("cadastro_moradores") || false;
+        }
+        if (permissao === "registrarPagamentos") {
+          response = permissoesPerfil.operation?.permissions?.includes("registrar_pagamentos") || false;
+        }
+        if (permissao === "gerenciarPontos") {
+          response = permissoesPerfil.operation?.permissions?.includes("gerenciar_pontos") || false;
+        }
+        break;
+      case "Relatórios e Análises":
+        if (permissao === "visualizarDashboards") {
+          response = permissoesPerfil.reports_analytics?.permissions?.includes("visualizar_dashboards") || false;
+        }
+        if (permissao === "exportarRelatorios") {
+          response = permissoesPerfil.reports_analytics?.permissions?.includes("exportar_relatorios") || false;
+        }
+        break;
+      case "Módulos Avançados":
+        if (permissao === "acessoFinancas") {
+          response = permissoesPerfil.advanced?.permissions?.includes("acesso_financas") || false;
+        }
+        if (permissao === "acessoAdministracao") {
+          response = permissoesPerfil.advanced?.permissions?.includes("acesso_administracao") || false;
+        }
+        break;
+      default:
+        response = false;
+    }
+    return response;
+  };
+
   useEffect(() => {
     if (perfil) {
       setNome(perfil.nome || "")
       setDescricao(perfil.descricao || "")
-      setPermissoes(perfil.permissoes || {})
+      
+      // Inicializar permissões baseado na estrutura da API
+      const permissoesIniciais: Record<string, boolean> = {};
+      
+      // Mapear cada permissão verificando nas categorias correspondentes
+      Object.entries(categoriaPermissoes).forEach(([categoria, permissoesList]) => {
+        permissoesList.forEach((permissao) => {
+          permissoesIniciais[permissao] = checkPermission(perfil.permissoes, permissao, categoria);
+        });
+      });
+      
+      setPermissoes(permissoesIniciais);
     }
   }, [perfil])
 
@@ -54,6 +112,59 @@ export function EditarPerfilModal({ perfil, open, onOpenChange }: EditarPerfilMo
       ...prev,
       [permissao]: checked,
     }))
+  }
+
+  // Função para converter permissões do formato frontend para API
+  const convertPermissoesToAPI = (permissoesState: Record<string, boolean>) => {
+    const apiPermissions = {
+      user_management: {
+        name: "user_management",
+        permissions: [] as string[]
+      },
+      operation: {
+        name: "operation",
+        permissions: [] as string[]
+      },
+      reports_analytics: {
+        name: "reports_analytics", 
+        permissions: [] as string[]
+      },
+      advanced: {
+        name: "advanced",
+        permissions: [] as string[]
+      }
+    };
+
+    // Mapear permissões marcadas para os módulos da API
+    if (permissoesState.cadastroUsuarios) {
+      apiPermissions.user_management.permissions.push("cadastro_usuario");
+    }
+    if (permissoesState.gerenciarPerfis) {
+      apiPermissions.user_management.permissions.push("cadastro_perfil");
+    }
+    if (permissoesState.cadastroMoradores) {
+      apiPermissions.operation.permissions.push("cadastro_moradores");
+    }
+    if (permissoesState.registrarPagamentos) {
+      apiPermissions.operation.permissions.push("registrar_pagamentos");
+    }
+    if (permissoesState.gerenciarPontos) {
+      apiPermissions.operation.permissions.push("gerenciar_pontos");
+    }
+    if (permissoesState.visualizarDashboards) {
+      apiPermissions.reports_analytics.permissions.push("visualizar_dashboards");
+    }
+    if (permissoesState.exportarRelatorios) {
+      apiPermissions.reports_analytics.permissions.push("exportar_relatorios");
+    }
+    if (permissoesState.acessoFinancas) {
+      apiPermissions.advanced.permissions.push("acesso_financas");
+    }
+    if (permissoesState.acessoAdministracao) {
+      apiPermissions.advanced.permissions.push("acesso_administracao");
+    }
+
+    return apiPermissions;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,10 +177,13 @@ export function EditarPerfilModal({ perfil, open, onOpenChange }: EditarPerfilMo
         throw new Error("O nome do perfil é obrigatório")
       }
 
-      await updatePerfil(perfil.id, {
+      // Converter permissões para formato da API
+      const permissoesAPI = convertPermissoesToAPI(permissoes);
+
+      await atualizarPerfil(perfil.id, {
         nome,
         descricao,
-        permissoes,
+        permissoes: permissoesAPI,
       })
 
       toast({

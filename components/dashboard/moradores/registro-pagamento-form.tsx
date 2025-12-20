@@ -9,43 +9,64 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 import { RegistroPagamentoFormProps } from "@/interfaces/IRegistroPagamentoFormProps"
+import { pagamentosApi } from "@/lib/api"
 
-// Dados simulados do carnê (em uma implementação real, viria do backend)
-const carneDataInicial = [
-  { mes: "Janeiro", ano: 2024, valor: 50.0, status: "pago", dataPagamento: "10/01/2024", mesRef: "2024-01" },
-  { mes: "Fevereiro", ano: 2024, valor: 50.0, status: "pago", dataPagamento: "15/02/2024", mesRef: "2024-02" },
-  { mes: "Março", ano: 2024, valor: 50.0, status: "pago", dataPagamento: "12/03/2024", mesRef: "2024-03" },
-  { mes: "Abril", ano: 2024, valor: 50.0, status: "pago", dataPagamento: "08/04/2024", mesRef: "2024-04" },
-  { mes: "Maio", ano: 2024, valor: 50.0, status: "pago", dataPagamento: "10/05/2024", mesRef: "2024-05" },
-  { mes: "Junho", ano: 2024, valor: 50.0, status: "pago", dataPagamento: "15/06/2024", mesRef: "2024-06" },
-  { mes: "Julho", ano: 2024, valor: 50.0, status: "pendente", dataPagamento: "", mesRef: "2024-07" },
-  { mes: "Agosto", ano: 2024, valor: 50.0, status: "pendente", dataPagamento: "", mesRef: "2024-08" },
-  { mes: "Setembro", ano: 2024, valor: 50.0, status: "pendente", dataPagamento: "", mesRef: "2024-09" },
-  { mes: "Outubro", ano: 2024, valor: 50.0, status: "pendente", dataPagamento: "", mesRef: "2024-10" },
-  { mes: "Novembro", ano: 2024, valor: 50.0, status: "pendente", dataPagamento: "", mesRef: "2024-11" },
-  { mes: "Dezembro", ano: 2024, valor: 50.0, status: "pendente", dataPagamento: "", mesRef: "2024-12" },
-]
+interface MesDisponivel {
+  value: string
+  label: string
+  valorSugerido: number
+}
 
 export function RegistroPagamentoForm({ moradorId, onPagamentoRegistrado }: RegistroPagamentoFormProps) {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [mesReferencia, setMesReferencia] = useState("")
   const [valor, setValor] = useState("50.00")
   const [comprovante, setComprovante] = useState<File | null>(null)
   const [observacao, setObservacao] = useState("")
-  const [mesesDisponiveis, setMesesDisponiveis] = useState<Array<{ value: string; label: string }>>([])
+  const [mesesDisponiveis, setMesesDisponiveis] = useState<MesDisponivel[]>([])
+  const [metodo, setMetodo] = useState<"Pix" | "Dinheiro">("Pix")
 
-  // Atualiza os meses disponíveis baseado no status do carnê
+  // Busca os meses disponíveis do carnê digital
   useEffect(() => {
-    const mesesPendentes = carneDataInicial
-      .filter((item) => item.status === "pendente")
-      .map((item) => ({
-        value: item.mesRef,
-        label: `${item.mes} ${item.ano}`,
-      }))
+    const fetchMesesDisponiveis = async () => {
+      try {
+        setIsLoading(true)
+        const anoAtual = new Date().getFullYear()
+        const response = await pagamentosApi.getCarneDigital(moradorId, anoAtual)
+        
+        if (response.data && response.data.meses && Array.isArray(response.data.meses)) {
+          const mesesPendentes = response.data.meses
+            .filter((item: any) => item.status === "Pendente" || item.status === "Atrasado")
+            .map((item: any) => ({
+              value: `${String(item.mes).padStart(2, '0')}/${item.ano || response.data.ano}`,
+              label: `${item.nomeCompleto} ${item.ano || response.data.ano}`,
+              valorSugerido: item.valor || 50.00
+            }))
+          
+          setMesesDisponiveis(mesesPendentes)
+          
+          if (mesesPendentes.length > 0) {
+            setValor(mesesPendentes[0].valorSugerido.toFixed(2))
+          }
+        }
+      } catch (error: any) {
+        console.error('Erro ao buscar meses disponíveis:', error)
+        toast({
+          title: "Erro ao carregar meses",
+          description: error.message || "Não foi possível carregar os meses disponíveis.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    setMesesDisponiveis(mesesPendentes)
-  }, [])
+    if (moradorId) {
+      fetchMesesDisponiveis()
+    }
+  }, [moradorId, toast])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -53,115 +74,195 @@ export function RegistroPagamentoForm({ moradorId, onPagamentoRegistrado }: Regi
     }
   }
 
+  // Converte arquivo para base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = (error) => reject(error)
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Validações
-    if (!mesReferencia) {
-      toast({
-        title: "Erro ao registrar pagamento",
-        description: "Selecione o mês de referência do pagamento.",
-        variant: "destructive",
-      })
-      setIsSubmitting(false)
-      return
-    }
+    try {
+      // Validações
+      if (!mesReferencia) {
+        toast({
+          title: "Erro ao registrar pagamento",
+          description: "Selecione o mês de referência do pagamento.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
-    if (!comprovante) {
-      toast({
-        title: "Erro ao registrar pagamento",
-        description: "É obrigatório anexar o comprovante PIX.",
-        variant: "destructive",
-      })
-      setIsSubmitting(false)
-      return
-    }
+      if (!comprovante && metodo === "Pix") {
+        toast({
+          title: "Erro ao registrar pagamento",
+          description: "É obrigatório anexar o comprovante PIX.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
-    // Simulação de envio do formulário
-    setTimeout(() => {
-      setIsSubmitting(false)
+      // Converte comprovante para base64 se houver
+      let comprovanteBase64 = null
+      if (comprovante) {
+        comprovanteBase64 = await fileToBase64(comprovante)
+      }
+
+      // Prepara dados do pagamento
+      const today = new Date().toISOString().split('T')[0]
+      const pagamentoData = {
+        mesAno: mesReferencia,
+        valor: parseFloat(valor),
+        dataPagamento: today,
+        metodo,
+        comprovante: comprovanteBase64,
+        observacao: observacao || undefined,
+      }
+
+      // Envia para API
+      await pagamentosApi.registrarPagamento(moradorId, pagamentoData)
+
+      // Limpa formulário
       setComprovante(null)
       setObservacao("")
+      setMesReferencia("")
 
-      const mesInfo = carneDataInicial.find((item) => item.mesRef === mesReferencia)
-      const mesNome = mesInfo ? `${mesInfo.mes}/${mesInfo.ano}` : mesReferencia
+      // Atualiza a lista de meses disponíveis
+      setMesesDisponiveis((prev) => prev.filter((mes) => mes.value !== mesReferencia))
 
-      // Notifica o componente pai para atualizar o carnê
+      // Notifica o componente pai
       if (onPagamentoRegistrado) {
         onPagamentoRegistrado(mesReferencia)
       }
 
-      // Remove o mês da lista de disponíveis
-      setMesesDisponiveis((prev) => prev.filter((mes) => mes.value !== mesReferencia))
-      setMesReferencia("")
-
       toast({
-        title: "Pagamento PIX registrado com sucesso!",
-        description: `Pagamento de ${mesNome} foi registrado e o carnê foi atualizado automaticamente.`,
+        title: "Pagamento registrado com sucesso!",
+        description: `Pagamento de ${mesReferencia.split('/')[0]}/${mesReferencia.split('/')[1]} foi registrado no sistema.`,
       })
-    }, 2000)
+
+      // Recarrega a página após 1.5 segundos para atualizar todos os dados
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (error: any) {
+      console.error('Erro ao registrar pagamento:', error)
+      toast({
+        title: "Erro ao registrar pagamento",
+        description: error.message || "Não foi possível registrar o pagamento. Tente novamente.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="mes-referencia">Mês de Referência *</Label>
-        <select
-          id="mes-referencia"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          value={mesReferencia}
-          onChange={(e) => setMesReferencia(e.target.value)}
-          required
-        >
-          <option value="">Selecione o mês...</option>
-          {mesesDisponiveis.map((mes) => (
-            <option key={mes.value} value={mes.value}>
-              {mes.label}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-muted-foreground">
-          {mesesDisponiveis.length === 0
-            ? "Todos os meses já foram pagos!"
-            : `Apenas meses pendentes estão disponíveis (${mesesDisponiveis.length} restantes)`}
-        </p>
-      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="mes-referencia">Mês de Referência *</Label>
+            <select
+              id="mes-referencia"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={mesReferencia}
+              onChange={(e) => {
+                setMesReferencia(e.target.value)
+                const mesSelecionado = mesesDisponiveis.find(m => m.value === e.target.value)
+                if (mesSelecionado) {
+                  setValor(mesSelecionado.valorSugerido.toFixed(2))
+                }
+              }}
+              required
+            >
+              <option value="">Selecione o mês...</option>
+              {mesesDisponiveis.map((mes) => (
+                <option key={mes.value} value={mes.value}>
+                  {mes.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              {mesesDisponiveis.length === 0
+                ? "Todos os meses já foram pagos!"
+                : `Apenas meses pendentes estão disponíveis (${mesesDisponiveis.length} restantes)`}
+            </p>
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="valor">Valor</Label>
-        <Input id="valor" type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} required />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="metodo">Método de Pagamento *</Label>
+            <select
+              id="metodo"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={metodo}
+              onChange={(e) => setMetodo(e.target.value as "Pix" | "Dinheiro")}
+              required
+            >
+              <option value="Pix">PIX</option>
+              <option value="Dinheiro">Dinheiro</option>
+            </select>
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="comprovante">Comprovante PIX *</Label>
-        <Input id="comprovante" type="file" onChange={handleFileChange} accept="image/*,.pdf" required />
-        <p className="text-xs text-muted-foreground">Anexe o comprovante de transferência PIX (imagem ou PDF)</p>
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="valor">Valor *</Label>
+            <Input id="valor" type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} required />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="observacao">Observação (opcional)</Label>
-        <Textarea
-          id="observacao"
-          placeholder="Informações adicionais sobre este pagamento PIX..."
-          value={observacao}
-          onChange={(e) => setObservacao(e.target.value)}
-          rows={2}
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="comprovante">
+              Comprovante {metodo === "Pix" ? "*" : "(opcional)"}
+            </Label>
+            <Input 
+              id="comprovante" 
+              type="file" 
+              onChange={handleFileChange} 
+              accept="image/*,.pdf" 
+              required={metodo === "Pix"}
+            />
+            <p className="text-xs text-muted-foreground">
+              {metodo === "Pix" 
+                ? "Anexe o comprovante de transferência PIX (imagem ou PDF)"
+                : "Opcionalmente anexe um comprovante (imagem ou PDF)"}
+            </p>
+          </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting || mesesDisponiveis.length === 0}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Registrando PIX...
-          </>
-        ) : mesesDisponiveis.length === 0 ? (
-          "Todos os meses já foram pagos"
-        ) : (
-          "Registrar Pagamento PIX"
-        )}
-      </Button>
+          <div className="space-y-2">
+            <Label htmlFor="observacao">Observação (opcional)</Label>
+            <Textarea
+              id="observacao"
+              placeholder="Informações adicionais sobre este pagamento..."
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              rows={2}
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isSubmitting || mesesDisponiveis.length === 0}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Registrando pagamento...
+              </>
+            ) : mesesDisponiveis.length === 0 ? (
+              "Todos os meses já foram pagos"
+            ) : (
+              "Registrar Pagamento"
+            )}
+          </Button>
+        </>
+      )}
     </form>
   )
 }

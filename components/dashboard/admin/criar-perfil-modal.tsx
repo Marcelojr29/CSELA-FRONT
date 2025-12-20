@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, ChevronDown } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { usePerfis } from "@/hooks/use-perfis"
+import { usePerfisAPI } from "@/hooks/use-perfis-api"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   AlertDialog,
@@ -23,32 +23,33 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CriarPerfilModalProps } from "@/interfaces/ICriarPerfilModalProps"
 
-// Estrutura dos módulos e suas funcionalidades
+// Estrutura dos módulos e suas funcionalidades baseada na API
 const modulosEstrutura = {
-  Admin: {
-    Usuários: ["Leitura", "Edição", "Atualização", "Exclusão"],
-    Perfis: ["Leitura", "Edição", "Atualização", "Exclusão"],
+  "Gestão de Usuários": {
+    "Cadastro de Usuário": ["cadastro_usuario"],
+    "Cadastro de Perfil": ["cadastro_perfil"],
   },
-  Operações: {
-    Moradores: ["Leitura", "Edição", "Atualização", "Exclusão"],
-    "Pontos de Distribuição": ["Leitura", "Edição", "Atualização", "Exclusão"],
-    Pagamentos: ["Leitura", "Edição", "Atualização", "Exclusão"],
+  "Operações": {
+    "Cadastro de Moradores": ["cadastro_moradores"],
+    "Registrar Pagamentos": ["registrar_pagamentos"],
+    "Gerenciar Pontos": ["gerenciar_pontos"],
   },
   "Relatórios e Análises": {
-    Dashboards: ["Leitura", "Exportação"],
-    Relatórios: ["Leitura", "Exportação"],
+    "Visualizar Dashboards": ["visualizar_dashboards"],
+    "Exportar Relatórios": ["exportar_relatorios"],
   },
   "Módulos Avançados": {
-    Finanças: ["Leitura", "Edição", "Atualização"],
-    Administração: ["Leitura", "Edição", "Atualização"],
+    "Acesso a Finanças": ["acesso_financas"],
+    "Acesso à Administração": ["acesso_administracao"],
   },
 }
 
 export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) {
   const { toast } = useToast()
-  const { createPerfil } = usePerfis()
+  const { criarPerfil } = usePerfisAPI()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nome, setNome] = useState("")
+  const [descricao, setDescricao] = useState("")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({})
   const [permissions, setPermissions] = useState<Record<string, Record<string, string[]>>>({})
@@ -60,7 +61,7 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
     }))
   }
 
-  const handlePermissionChange = (module: string, funcionalidade: string, nivel: string, checked: boolean) => {
+  const handlePermissionChange = (module: string, funcionalidade: string, permissao: string, checked: boolean) => {
     setPermissions((prev) => {
       const newPermissions = { ...prev }
       if (!newPermissions[module]) {
@@ -71,11 +72,11 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
       }
 
       if (checked) {
-        if (!newPermissions[module][funcionalidade].includes(nivel)) {
-          newPermissions[module][funcionalidade].push(nivel)
+        if (!newPermissions[module][funcionalidade].includes(permissao)) {
+          newPermissions[module][funcionalidade].push(permissao)
         }
       } else {
-        newPermissions[module][funcionalidade] = newPermissions[module][funcionalidade].filter((n) => n !== nivel)
+        newPermissions[module][funcionalidade] = newPermissions[module][funcionalidade].filter((p) => p !== permissao)
       }
 
       return newPermissions
@@ -83,9 +84,9 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
   }
 
   const handleSelectAll = (module: string, funcionalidade: string) => {
-    const allLevels = modulosEstrutura[module as keyof typeof modulosEstrutura][funcionalidade]
-    const currentLevels = permissions[module]?.[funcionalidade] || []
-    const allSelected = allLevels.every((level: any) => currentLevels.includes(level))
+    const allPermissions = modulosEstrutura[module as keyof typeof modulosEstrutura][funcionalidade]
+    const currentPermissions = permissions[module]?.[funcionalidade] || []
+    const allSelected = allPermissions.every((permissao: any) => currentPermissions.includes(permissao))
 
     setPermissions((prev) => {
       const newPermissions = { ...prev }
@@ -96,11 +97,65 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
       if (allSelected) {
         newPermissions[module][funcionalidade] = []
       } else {
-        newPermissions[module][funcionalidade] = [...allLevels]
+        newPermissions[module][funcionalidade] = [...allPermissions]
       }
 
       return newPermissions
     })
+  }
+
+  // Função para converter permissões selecionadas para formato da API
+  const convertPermissoesToAPI = (permissoesState: Record<string, Record<string, string[]>>) => {
+    const apiPermissions = {
+      user_management: {
+        name: "user_management",
+        permissions: [] as string[]
+      },
+      operation: {
+        name: "operation", 
+        permissions: [] as string[]
+      },
+      reports_analytics: {
+        name: "reports_analytics",
+        permissions: [] as string[]
+      },
+      advanced: {
+        name: "advanced",
+        permissions: [] as string[]
+      }
+    };
+
+    // Mapear permissões selecionadas para os módulos da API
+    Object.entries(permissoesState).forEach(([module, funcionalidades]) => {
+      Object.entries(funcionalidades).forEach(([funcionalidade, permissoes]) => {
+        permissoes.forEach(permissao => {
+          switch (module) {
+            case "Gestão de Usuários":
+              if (!apiPermissions.user_management.permissions.includes(permissao)) {
+                apiPermissions.user_management.permissions.push(permissao);
+              }
+              break;
+            case "Operações":
+              if (!apiPermissions.operation.permissions.includes(permissao)) {
+                apiPermissions.operation.permissions.push(permissao);
+              }
+              break;
+            case "Relatórios e Análises":
+              if (!apiPermissions.reports_analytics.permissions.includes(permissao)) {
+                apiPermissions.reports_analytics.permissions.push(permissao);
+              }
+              break;
+            case "Módulos Avançados":
+              if (!apiPermissions.advanced.permissions.includes(permissao)) {
+                apiPermissions.advanced.permissions.push(permissao);
+              }
+              break;
+          }
+        });
+      });
+    });
+
+    return apiPermissions;
   }
 
   const handleCreateClick = () => {
@@ -120,13 +175,23 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
     setShowConfirmDialog(false)
 
     try {
-      await createPerfil({
+      // Converter permissões para formato da API
+      const permissoesAPI = convertPermissoesToAPI(permissions);
+      
+      const perfilData = {
         nome,
-        status: "Ativo",
-        descricao: `Perfil personalizado: ${nome}`,
-        permissions,
-        role: "custom",
-      })
+        status: true, // API espera boolean
+        permissoes: permissoesAPI
+      };
+      
+      // Se descrição foi fornecida, adicionar ao objeto
+      if (descricao.trim()) {
+        (perfilData as any).descricao = descricao;
+      }
+
+      console.log('📤 Enviando dados para API:', perfilData);
+
+      await criarPerfil(perfilData);
 
       toast({
         title: "Perfil criado",
@@ -135,10 +200,12 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
 
       // Limpar formulário
       setNome("")
+      setDescricao("")
       setPermissions({})
       setOpenModules({})
       onOpenChange(false)
     } catch (error: any) {
+      console.error('❌ Erro ao criar perfil:', error);
       toast({
         title: "Erro ao criar perfil",
         description: error.message || "Ocorreu um erro ao criar o perfil. Tente novamente.",
@@ -158,8 +225,8 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* Nome e Status */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Nome, Descrição e Status */}
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome do Perfil</Label>
                 <Input
@@ -167,6 +234,15 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Digite o nome do perfil"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="descricao">Descrição (Opcional)</Label>
+                <Input
+                  id="descricao"
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  placeholder="Descreva brevemente este perfil"
                 />
               </div>
               <div className="space-y-2">
@@ -194,7 +270,7 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 space-y-3 border rounded-md p-4 bg-muted/20">
-                    {Object.entries(funcionalidades).map(([funcionalidade, niveis]) => (
+                    {Object.entries(funcionalidades).map(([funcionalidade, permissoes]) => (
                       <div key={funcionalidade} className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="font-medium">{funcionalidade}</Label>
@@ -209,20 +285,20 @@ export function CriarPerfilModal({ open, onOpenChange }: CriarPerfilModalProps) 
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-3">
-                          {niveis.map((nivel) => (
-                            <div key={nivel} className="flex items-center space-x-2">
+                          {permissoes.map((permissao) => (
+                            <div key={permissao} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`${modulo}-${funcionalidade}-${nivel}`}
-                                checked={permissions[modulo]?.[funcionalidade]?.includes(nivel) || false}
+                                id={`${modulo}-${funcionalidade}-${permissao}`}
+                                checked={permissions[modulo]?.[funcionalidade]?.includes(permissao) || false}
                                 onCheckedChange={(checked) =>
-                                  handlePermissionChange(modulo, funcionalidade, nivel, checked === true)
+                                  handlePermissionChange(modulo, funcionalidade, permissao, checked === true)
                                 }
                               />
                               <Label
-                                htmlFor={`${modulo}-${funcionalidade}-${nivel}`}
+                                htmlFor={`${modulo}-${funcionalidade}-${permissao}`}
                                 className="text-sm cursor-pointer"
                               >
-                                {nivel}
+                                {permissao.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                               </Label>
                             </div>
                           ))}

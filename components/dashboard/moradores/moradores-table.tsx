@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { MoreHorizontal, Search, FileText, Printer, MessageSquare, Eye } from "lucide-react"
+import { MoreHorizontal, Search, FileText, Printer, MessageSquare, Eye, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,130 +23,55 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
 import { MoradoresTableProps } from "@/interfaces/IMoradoresTableProps"
-
-// Dados simulados de moradores com todos os campos necessários
-const moradoresData = [
-  {
-    id: "1",
-    nome: "João Silva",
-    rg: "12.345.678-9",
-    cpf: "123.456.789-00",
-    nascimento: "1985-03-15",
-    estadoCivil: "Casado(a)",
-    rua: "Rua das Flores",
-    numero: "123",
-    bairro: "PURAQUEQUARA (Com. Bela Vista)",
-    cep: "69000-000",
-    telefone: "(92) 98765-4321",
-    tipoResidencia: "Alvenaria",
-    qtdPessoas: 4,
-    tempoResidencia: "2020-01-15",
-    observacao:
-      "Morador muito colaborativo com a comunidade. Sempre participa das reuniões e ajuda na organização dos eventos locais.",
-    status: "adimplente",
-    ultimoPagamento: "2023-06-15",
-  },
-  {
-    id: "2",
-    nome: "Maria Oliveira",
-    rg: "98.765.432-1",
-    cpf: "987.654.321-00",
-    nascimento: "1978-08-22",
-    estadoCivil: "Solteiro(a)",
-    rua: "Av. Principal",
-    numero: "456",
-    bairro: "PURAQUEQUARA (Com. Bela Vista)",
-    cep: "69000-001",
-    telefone: "(92) 91234-5678",
-    tipoResidencia: "Madeira",
-    qtdPessoas: 3,
-    tempoResidencia: "2018-05-10",
-    observacao: "",
-    status: "inadimplente",
-    ultimoPagamento: "2023-03-10",
-  },
-  {
-    id: "3",
-    nome: "Pedro Santos",
-    rg: "45.678.912-3",
-    cpf: "456.789.123-00",
-    nascimento: "1990-12-03",
-    estadoCivil: "União Estável",
-    rua: "Rua dos Pinheiros",
-    numero: "789",
-    bairro: "PURAQUEQUARA (Com. Bela Vista)",
-    cep: "69000-002",
-    telefone: "(92) 99876-5432",
-    tipoResidencia: "Mista",
-    qtdPessoas: 2,
-    tempoResidencia: "2019-03-20",
-    observacao: "Possui deficiência física. Necessita de atenção especial para acessibilidade.",
-    status: "inadimplente",
-    ultimoPagamento: "2023-02-05",
-  },
-  {
-    id: "4",
-    nome: "Ana Souza",
-    rg: "78.912.345-6",
-    cpf: "789.123.456-00",
-    nascimento: "1982-07-18",
-    estadoCivil: "Divorciado(a)",
-    rua: "Alameda Santos",
-    numero: "1011",
-    bairro: "PURAQUEQUARA (Com. Bela Vista)",
-    cep: "69000-003",
-    telefone: "(92) 95678-1234",
-    tipoResidencia: "Estância",
-    qtdPessoas: 5,
-    tempoResidencia: "2017-11-08",
-    observacao: "Família numerosa com crianças pequenas. Prioridade para programas sociais.",
-    status: "adimplente",
-    ultimoPagamento: "2023-06-20",
-  },
-  {
-    id: "5",
-    nome: "Carlos Ferreira",
-    rg: "32.165.498-7",
-    cpf: "321.654.987-00",
-    nascimento: "1975-04-12",
-    estadoCivil: "Viúvo",
-    rua: "Rua Augusta",
-    numero: "1213",
-    bairro: "PURAQUEQUARA (Com. Bela Vista)",
-    cep: "69000-004",
-    telefone: "(92) 94321-8765",
-    tipoResidencia: "Alvenaria",
-    qtdPessoas: 1,
-    tempoResidencia: "2021-09-15",
-    observacao: "",
-    status: "inadimplente",
-    ultimoPagamento: "2023-01-15",
-  },
-]
+import { useMoradoresAPI, type Morador } from "@/hooks/use-moradores-api"
 
 export function MoradoresTable({ filter }: MoradoresTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [moradorParaExcluir, setMoradorParaExcluir] = useState<Morador | null>(null)
+  const [excluindoMorador, setExcluindoMorador] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { moradores, moradoresResponse, isLoading, error, buscarMoradores, excluirMorador } = useMoradoresAPI()
+  const { toast } = useToast()
 
-  // Filtra os moradores com base no termo de busca e no filtro de status
-  const filteredMoradores = moradoresData
-    .filter((morador) => {
-      if (filter === "adimplentes") return morador.status === "adimplente"
-      if (filter === "inadimplentes") return morador.status === "inadimplente"
-      return true
-    })
-    .filter(
-      (morador) =>
-        morador.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        morador.cpf.includes(searchTerm) ||
-        morador.rg.includes(searchTerm) ||
-        morador.rua.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
+  const fetchMoradores = useCallback(async (page = currentPage, limit = pageSize, search = searchTerm) => {
+    const filtros: any = {
+      page,
+      limit,
+    }
+    
+    if (filter) {
+      filtros.status = filter === "adimplentes" ? "Adimplente" : "Inadimplente"
+    }
+    
+    if (search.trim()) {
+      filtros.search = search.trim()
+    }
+    
+    await buscarMoradores(filtros)
+  }, [filter, currentPage, pageSize, searchTerm, buscarMoradores])
 
-  const calcularIdade = (nascimento: string) => {
+  // Buscar moradores ao montar o componente ou quando os filtros/paginação mudarem
+  useEffect(() => {
+    fetchMoradores()
+  }, [fetchMoradores])
+
+  // Reset para primeira página quando filtros mudarem
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
+    }
+  }, [filter, searchTerm])
+
+  // Usar dados diretamente da API (já filtrados no backend)
+  const filteredMoradores = moradores
+
+  const calcularIdade = (dataDeNascimento: string) => {
     const hoje = new Date()
-    const dataNasc = new Date(nascimento)
+    const dataNasc = new Date(dataDeNascimento)
     let idade = hoje.getFullYear() - dataNasc.getFullYear()
     const mes = hoje.getMonth() - dataNasc.getMonth()
     if (mes < 0 || (mes === 0 && hoje.getDate() < dataNasc.getDate())) {
@@ -155,29 +80,35 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
     return idade
   }
 
-  const calcularTempoResidencia = (dataInicio: string) => {
-    const hoje = new Date()
-    const inicio = new Date(dataInicio)
-    const anos = hoje.getFullYear() - inicio.getFullYear()
-    const meses = hoje.getMonth() - inicio.getMonth()
-
-    if (anos > 0) {
+  const calcularTempoResidencia = (tempoEmMeses: number) => {
+    if (tempoEmMeses >= 12) {
+      const anos = Math.floor(tempoEmMeses / 12)
       return `${anos} ano${anos > 1 ? "s" : ""}`
-    } else if (meses > 0) {
-      return `${meses} mês${meses > 1 ? "es" : ""}`
+    } else if (tempoEmMeses > 0) {
+      return `${tempoEmMeses} mês${tempoEmMeses > 1 ? "es" : ""}`
     } else {
-      return "Menos de 1 mês"
+      return "1 mês"
     }
   }
 
-  const calcularTempoResidenciaCompleto = (dataInicio: string) => {
+  const calcularTempoResidenciaCompleto = (criadoEm: string) => {
     const hoje = new Date()
-    const inicio = new Date(dataInicio)
-
+    const inicio = new Date(criadoEm)
     return `${inicio.getFullYear()} A ${hoje.getFullYear()}`
   }
 
-  const handleImprimirFicha = (morador: any) => {
+  const formatarCpf = (cpf: string) => {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+  }
+
+  const formatarRg = (rg: string) => {
+    if (rg.length <= 9) {
+      return rg.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4")
+    }
+    return rg
+  }
+
+  const handleImprimirFicha = (morador: Morador) => {
     const dataAtual = new Date().toLocaleDateString("pt-BR")
 
     // Criar conteúdo HTML para impressão da ficha seguindo o modelo da imagem
@@ -358,41 +289,41 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
           <div class="form-row">
             <div class="form-field" style="flex: 1;">
               <div class="form-label">RG</div>
-              <div class="form-value">${morador.rg}</div>
+              <div class="form-value">${formatarRg(morador.rg)}</div>
             </div>
             <div class="form-field" style="flex: 1;">
               <div class="form-label">CPF</div>
-              <div class="form-value">${morador.cpf}</div>
+              <div class="form-value">${formatarCpf(morador.cpf)}</div>
             </div>
             <div class="form-field" style="flex: 1;">
               <div class="form-label">Nascimento</div>
-              <div class="form-value">${new Date(morador.nascimento).toLocaleDateString("pt-BR")}</div>
+              <div class="form-value">${new Date(morador.dataDeNascimento).toLocaleDateString("pt-BR")}</div>
             </div>
           </div>
 
-          <!-- Estado Civil -->
+          <!-- Estado Civil (campo não existe na API, deixar em branco) -->
           <div class="form-row">
             <div class="form-field" style="flex: 1;">
               <div class="form-label">Estado Civil:</div>
               <div class="checkbox-group">
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.estadoCivil === "Solteiro(a)" ? "X" : ""}</span>
+                  <span class="checkbox"></span>
                   <span>Solteiro(a);</span>
                 </div>
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.estadoCivil === "Casado(a)" ? "X" : ""}</span>
+                  <span class="checkbox"></span>
                   <span>Casado(a);</span>
                 </div>
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.estadoCivil === "União Estável" ? "X" : ""}</span>
+                  <span class="checkbox"></span>
                   <span>União Estável;</span>
                 </div>
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.estadoCivil === "Divorciado(a)" ? "X" : ""}</span>
+                  <span class="checkbox"></span>
                   <span>Divorciado(a);</span>
                 </div>
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.estadoCivil === "Viúvo" ? "X" : ""}</span>
+                  <span class="checkbox"></span>
                   <span>Viúvo</span>
                 </div>
               </div>
@@ -407,7 +338,7 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
             </div>
             <div class="form-field" style="flex: 1;">
               <div class="form-label">N.º</div>
-              <div class="form-value">${morador.numero}</div>
+              <div class="form-value">${morador.numeroResidencia}</div>
             </div>
           </div>
 
@@ -419,7 +350,7 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
             </div>
             <div class="form-field" style="flex: 1;">
               <div class="form-label">Cep:</div>
-              <div class="form-value">${morador.cep}</div>
+              <div class="form-value">${morador.cep.replace(/(\d{5})(\d{3})/, "$1-$2")}</div>
             </div>
             <div class="form-field" style="flex: 1;">
               <div class="form-label">Tel:</div>
@@ -437,7 +368,7 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
                   <span>Madeira;</span>
                 </div>
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.tipoResidencia === "Alvenaria" ? "X" : ""}</span>
+                  <span class="checkbox">${morador.tipoResidencia === "Casa" || morador.tipoResidencia === "Apartamento" ? "X" : ""}</span>
                   <span>Alvenaria;</span>
                 </div>
                 <div class="checkbox-item">
@@ -445,7 +376,7 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
                   <span>Mista;</span>
                 </div>
                 <div class="checkbox-item">
-                  <span class="checkbox">${morador.tipoResidencia === "Estância" ? "X" : ""}</span>
+                  <span class="checkbox">${morador.tipoResidencia === "Sobrado" || morador.tipoResidencia === "Comercial" ? "X" : ""}</span>
                   <span>Estância</span>
                 </div>
               </div>
@@ -456,11 +387,11 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
           <div class="form-row">
             <div class="form-field" style="flex: 2;">
               <div class="form-label">Quantas Pessoas Moram na Casa?</div>
-              <div class="form-value" style="text-align: center; font-weight: bold;">${morador.qtdPessoas.toString().padStart(2, "0")}</div>
+              <div class="form-value" style="text-align: center; font-weight: bold;">${morador.quantidadePessoas.toString().padStart(2, "0")}</div>
             </div>
             <div class="form-field" style="flex: 2;">
               <div class="form-label">Reside há Quanto Tempo?</div>
-              <div class="form-value" style="text-align: center; font-weight: bold;">${calcularTempoResidenciaCompleto(morador.tempoResidencia)}</div>
+              <div class="form-value" style="text-align: center; font-weight: bold;">${calcularTempoResidenciaCompleto(morador.criadoEm)}</div>
             </div>
           </div>
 
@@ -468,7 +399,7 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
           <div class="obs-section">
             <div class="obs-label">OBS:</div>
             <div class="obs-field">
-              ${morador.observacao || "APRESENTADO RG, E CPF PARA REGULARIZAR SEM RISCO DE PRAZOS IMPORTANTE ATÉ DIA 15-PARA REGULARIZAR SEM RISCO DE SUSPENSÃO. TAXA 45,00 MENSAL MIL LITROS"}
+              ${morador.descricao || "APRESENTADO RG, E CPF PARA REGULARIZAR SEM RISCO DE PRAZOS IMPORTANTE ATÉ DIA 15-PARA REGULARIZAR SEM RISCO DE SUSPENSÃO. TAXA 45,00 MENSAL MIL LITROS"}
             </div>
           </div>
 
@@ -507,135 +438,367 @@ export function MoradoresTable({ filter }: MoradoresTableProps) {
     }
   }
 
+  const handleExcluirMorador = async () => {
+    if (!moradorParaExcluir) return
+
+    setExcluindoMorador(true)
+    try {
+      const sucesso = await excluirMorador(moradorParaExcluir.id)
+      
+      if (sucesso) {
+        toast({
+          title: "Morador excluído com sucesso!",
+          description: `${moradorParaExcluir.nome} foi removido do sistema.`,
+        })
+        setMoradorParaExcluir(null)
+        
+        // Recarregar dados mantendo a paginação atual
+        // Se foi o último item da página, voltar para página anterior
+        if (moradores.length === 1 && currentPage > 1) {
+          const newPage = currentPage - 1
+          setCurrentPage(newPage)
+          fetchMoradores(newPage, pageSize, searchTerm)
+        } else {
+          fetchMoradores(currentPage, pageSize, searchTerm)
+        }
+      } else {
+        throw new Error("Falha ao excluir morador")
+      }
+    } catch (err: any) {
+      toast({
+        title: "Erro ao excluir morador",
+        description: err.message || "Ocorreu um erro inesperado",
+        variant: "destructive",
+      })
+    } finally {
+      setExcluindoMorador(false)
+    }
+  }
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar moradores..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8 w-[300px]"
-          />
+
+
+        {/* Modal de confirmação de exclusão */}
+        <Dialog open={!!moradorParaExcluir} onOpenChange={() => setMoradorParaExcluir(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirmar Exclusão</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja excluir o morador <strong>{moradorParaExcluir?.nome}</strong>?
+                <br />
+                <span className="text-red-600 font-medium">
+                  Esta ação não pode ser desfeita.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setMoradorParaExcluir(null)}
+                disabled={excluindoMorador}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleExcluirMorador}
+                disabled={excluindoMorador}
+              >
+                {excluindoMorador ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  "Excluir Morador"
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Controles de busca e paginação */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar moradores..."
+              value={searchTerm}
+              onChange={(e) => {
+                const newSearchTerm = e.target.value
+                setSearchTerm(newSearchTerm)
+                // Debounce: buscar após 500ms sem digitação
+                const timeoutId = setTimeout(() => {
+                  setCurrentPage(1)
+                  fetchMoradores(1, pageSize, newSearchTerm)
+                }, 500)
+                return () => clearTimeout(timeoutId)
+              }}
+              className="h-8 w-[300px]"
+            />
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Itens por página:</span>
+            <select 
+              value={pageSize} 
+              onChange={(e) => {
+                const newPageSize = Number(e.target.value)
+                setPageSize(newPageSize)
+                setCurrentPage(1)
+                fetchMoradores(1, newPageSize, searchTerm)
+              }}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
         </div>
 
-        <div className="rounded-md border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>RG</TableHead>
-                <TableHead>CPF</TableHead>
-                <TableHead>Nascimento</TableHead>
-                <TableHead>Rua</TableHead>
-                <TableHead>Nº</TableHead>
-                <TableHead>Bairro</TableHead>
-                <TableHead>CEP</TableHead>
-                <TableHead>Tel</TableHead>
-                <TableHead>Tipo Residência</TableHead>
-                <TableHead>Qtd Pessoas</TableHead>
-                <TableHead>Tempo Residência</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Último Pagamento</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMoradores.map((morador) => (
-                <TableRow key={morador.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {morador.nome}
-                      {morador.observacao && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                              <MessageSquare className="h-3 w-3" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Observações - {morador.nome}</DialogTitle>
-                              <DialogDescription>{morador.observacao}</DialogDescription>
-                            </DialogHeader>
-                          </DialogContent>
-                        </Dialog>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{morador.rg}</TableCell>
-                  <TableCell>{morador.cpf}</TableCell>
-                  <TableCell>
-                    <Tooltip>
-                      <TooltipTrigger>{new Date(morador.nascimento).toLocaleDateString("pt-BR")}</TooltipTrigger>
-                      <TooltipContent>{calcularIdade(morador.nascimento)} anos</TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>{morador.rua}</TableCell>
-                  <TableCell>{morador.numero}</TableCell>
-                  <TableCell className="text-xs">{morador.bairro}</TableCell>
-                  <TableCell>{morador.cep}</TableCell>
-                  <TableCell>{morador.telefone}</TableCell>
-                  <TableCell>{morador.tipoResidencia}</TableCell>
-                  <TableCell className="text-center">{morador.qtdPessoas}</TableCell>
-                  <TableCell>
-                    <Tooltip>
-                      <TooltipTrigger>{calcularTempoResidencia(morador.tempoResidencia)}</TooltipTrigger>
-                      <TooltipContent>
-                        Desde {new Date(morador.tempoResidencia).toLocaleDateString("pt-BR")}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={morador.status === "adimplente" ? "outline" : "destructive"}>
-                      {morador.status === "adimplente" ? "Adimplente" : "Inadimplente"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(morador.ultimoPagamento).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Abrir menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/moradores/${morador.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Visualizar
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/moradores/${morador.id}/editar`}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Editar
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Excluir</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/moradores/${morador.id}/pagamentos`}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Imprimir Carnê
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleImprimirFicha(morador)}>
-                          <Printer className="mr-2 h-4 w-4" />
-                          Imprimir Ficha
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Carregando moradores...</span>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <div className="flex justify-center items-center py-8 text-red-500">
+            <span>Erro ao carregar moradores: {error.message}</span>
+          </div>
+        )}
+
+        {/* Table */}
+        {!isLoading && !error && (
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>RG</TableHead>
+                  <TableHead>CPF</TableHead>
+                  <TableHead>Nascimento</TableHead>
+                  <TableHead>Rua</TableHead>
+                  <TableHead>Nº</TableHead>
+                  <TableHead>Bairro</TableHead>
+                  <TableHead>CEP</TableHead>
+                  <TableHead>Tel</TableHead>
+                  <TableHead>Tipo Residência</TableHead>
+                  <TableHead>Qtd Pessoas</TableHead>
+                  <TableHead>Tempo Residência</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Último Pagamento</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredMoradores.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
+                      {searchTerm ? "Nenhum morador encontrado com os filtros aplicados" : "Nenhum morador cadastrado"}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredMoradores.map((morador) => (
+                    <TableRow key={morador.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {morador.nome}
+                          {morador.descricao && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                  <MessageSquare className="h-3 w-3" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Observações - {morador.nome}</DialogTitle>
+                                  <DialogDescription>{morador.descricao}</DialogDescription>
+                                </DialogHeader>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatarRg(morador.rg)}</TableCell>
+                      <TableCell>{formatarCpf(morador.cpf)}</TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger>{new Date(morador.dataDeNascimento).toLocaleDateString("pt-BR")}</TooltipTrigger>
+                          <TooltipContent>{calcularIdade(morador.dataDeNascimento)} anos</TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>{morador.rua}</TableCell>
+                      <TableCell>{morador.numeroResidencia}</TableCell>
+                      <TableCell className="text-xs">{morador.bairro}</TableCell>
+                      <TableCell>{morador.cep.replace(/(\d{5})(\d{3})/, "$1-$2")}</TableCell>
+                      <TableCell>{morador.telefone}</TableCell>
+                      <TableCell>{morador.tipoResidencia}</TableCell>
+                      <TableCell className="text-center">{morador.quantidadePessoas}</TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger>{calcularTempoResidencia(morador.tempoResidencia)}</TooltipTrigger>
+                          <TooltipContent>
+                            Desde {new Date(morador.criadoEm).toLocaleDateString("pt-BR")}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={morador.status === "Adimplente" ? "outline" : "destructive"}>
+                          {morador.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {morador.dataUltimoPagamento
+                          ? new Date(morador.dataUltimoPagamento).toLocaleDateString("pt-BR")
+                          : "Nunca"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Abrir menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/moradores/${morador.id}`}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Visualizar
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/moradores/${morador.id}/editar`}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                Editar
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => setMoradorParaExcluir(morador)}
+                            >
+                              Excluir
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/moradores/${morador.id}/pagamentos`}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Imprimir Carnê
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleImprimirFicha(morador)}>
+                              <Printer className="mr-2 h-4 w-4" />
+                              Imprimir Ficha
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        
+        {/* Controles de paginação */}
+        {!isLoading && !error && moradoresResponse && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Mostrando {((moradoresResponse.page - 1) * moradoresResponse.limit) + 1} a{" "}
+                {Math.min(moradoresResponse.page * moradoresResponse.limit, moradoresResponse.total)} de{" "}
+                {moradoresResponse.total} moradores
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newPage = currentPage - 1
+                  setCurrentPage(newPage)
+                  fetchMoradores(newPage, pageSize, searchTerm)
+                }}
+                disabled={currentPage <= 1 || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {/* Paginação numerada */}
+                {Array.from({ length: Math.min(5, moradoresResponse.totalPages) }, (_, i) => {
+                  const pageNumber = Math.max(1, Math.min(
+                    moradoresResponse.totalPages - 4,
+                    Math.max(1, currentPage - 2)
+                  )) + i
+                  
+                  if (pageNumber > moradoresResponse.totalPages) return null
+                  
+                  return (
+                    <Button
+                      key={pageNumber}
+                      variant={pageNumber === currentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setCurrentPage(pageNumber)
+                        fetchMoradores(pageNumber, pageSize, searchTerm)
+                      }}
+                      disabled={isLoading}
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNumber}
+                    </Button>
+                  )
+                })}
+                
+                {moradoresResponse.totalPages > 5 && currentPage < moradoresResponse.totalPages - 2 && (
+                  <>
+                    <span className="px-2 text-muted-foreground">...</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCurrentPage(moradoresResponse.totalPages)
+                        fetchMoradores(moradoresResponse.totalPages, pageSize, searchTerm)
+                      }}
+                      disabled={isLoading}
+                      className="w-8 h-8 p-0"
+                    >
+                      {moradoresResponse.totalPages}
+                    </Button>
+                  </>
+                )}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newPage = currentPage + 1
+                  setCurrentPage(newPage)
+                  fetchMoradores(newPage, pageSize, searchTerm)
+                }}
+                disabled={currentPage >= moradoresResponse.totalPages || isLoading}
+              >
+                Próximo
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   )

@@ -17,7 +17,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
-import type { GalleryPhoto } from "@/lib/gallery-service"
+
+interface GalleryPhoto {
+  id: number
+  imageUrl: string
+  title: string
+  description: string
+  status: "ativa" | "inativa"
+  addedBy: string
+  views: number
+  createdAt: string
+  updatedAt: string
+}
 
 interface EditPhotoModalProps {
   photo: GalleryPhoto | null

@@ -19,7 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { usePerfis } from "@/hooks/use-perfis"
+import { usePerfisAPI } from "@/hooks/use-perfis-api"
 
 // --- Permissões e categorias (mantidos para compatibilidade com outros modais) ---
 export const permissoesDescricoes = {
@@ -43,34 +43,44 @@ export const categoriaPermissoes = {
 
 export function PerfisTable({ perfis }: { perfis: any[] }) {
   const { toast } = useToast()
-  const { deletePerfil } = usePerfis()
+  const { excluirPerfil } = usePerfisAPI()
   const [editingPerfil, setEditingPerfil] = useState<any | null>(null)
   const [viewingPerfil, setViewingPerfil] = useState<any | null>(null)
 
   // Função para obter a cor do badge com base no status
-  const getStatusBadgeVariant = (status: string) => {
-    return status === "Ativo" ? "default" : "secondary"
+  const getStatusBadgeVariant = (status: boolean) => {
+    return status === true ? "default" : "secondary"
   }
 
   const handleDelete = async (id: string) => {
     try {
-      await deletePerfil(id)
-      toast({
-        title: "Perfil excluído",
-        description: "O perfil foi excluído com sucesso.",
-      })
-    } catch (error) {
+      console.log('🗑️ Excluindo perfil:', id);
+      const sucesso = await excluirPerfil(id);
+      
+      if (sucesso) {
+        toast({
+          title: "Perfil excluído",
+          description: "O perfil foi excluído com sucesso.",
+        });
+      } else {
+        throw new Error('Falha ao excluir perfil');
+      }
+    } catch (error: any) {
+      console.error('❌ Erro ao excluir perfil:', error);
       toast({
         title: "Erro ao excluir perfil",
-        description: "Ocorreu um erro ao excluir o perfil. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao excluir o perfil. Tente novamente.",
         variant: "destructive",
-      })
+      });
     }
   }
 
   // Verifica se o perfil é um dos perfis padrão do sistema
-  const isDefaultPerfil = (role: UserRole) => {
-    return [UserRole.ADMIN, UserRole.ACCOUNTANT, UserRole.EMPLOYEE, UserRole.SUPPORT].includes(role)
+  const isDefaultPerfil = (perfil: any) => {
+    // Considerar como perfil padrão se tiver role definido ou se for um dos nomes padrão
+    const nomesPerfisPadrao = ['Administrador', 'Contador', 'Funcionário', 'Suporte'];
+    return perfil.role && [UserRole.ADMIN, UserRole.ACCOUNTANT, UserRole.EMPLOYEE, UserRole.SUPPORT].includes(perfil.role) ||
+           nomesPerfisPadrao.includes(perfil.nome);
   }
 
   return (
@@ -93,7 +103,7 @@ export function PerfisTable({ perfis }: { perfis: any[] }) {
                 </div>
               </td>
               <td className="px-6 py-4">
-                <Badge variant={getStatusBadgeVariant(perfil.status || "Ativo")}>{perfil.status || "Ativo"}</Badge>
+                <Badge variant={getStatusBadgeVariant(perfil.status || "Ativo")}>{perfil.status ? "Ativo" : "Inativo"}</Badge>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-2">
@@ -104,7 +114,7 @@ export function PerfisTable({ perfis }: { perfis: any[] }) {
                     variant="ghost"
                     size="sm"
                     onClick={() => setEditingPerfil(perfil)}
-                    disabled={isDefaultPerfil(perfil.role)}
+                    disabled={isDefaultPerfil(perfil)}
                     className="h-8 w-8 p-0"
                   >
                     <Edit className="h-4 w-4" />
@@ -114,7 +124,7 @@ export function PerfisTable({ perfis }: { perfis: any[] }) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled={isDefaultPerfil(perfil.role)}
+                        disabled={isDefaultPerfil(perfil)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                       >
                         <Trash className="h-4 w-4" />
