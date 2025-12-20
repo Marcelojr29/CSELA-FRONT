@@ -17,7 +17,7 @@ interface GalleryPhoto {
 async function fetchGalleryPhotos(): Promise<GalleryPhoto[]> {
   try {
     // URL da API - ajuste conforme necessário
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     
     const response = await fetch(`${apiUrl}/public/gallery/active`, {
       method: 'GET',
