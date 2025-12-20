@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { financasApi } from "@/lib/api"
 import { useToast } from "@/components/ui/use-toast"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 interface PaymentRecord {
   id: string
@@ -82,6 +84,88 @@ export default function FinancasPage() {
     document.body.removeChild(link)
   }
 
+  const exportarRelatorio = () => {
+    try {
+      const doc = new jsPDF()
+      
+      // Título do relatório
+      doc.setFontSize(18)
+      doc.text("Relatório Financeiro - CSELA", 14, 20)
+      
+      // Período
+      const mesNome = meses.find(m => m.value === selectedMonth)?.label || ""
+      doc.setFontSize(12)
+      doc.text(`Período: ${mesNome} de ${selectedYear}`, 14, 30)
+      
+      // Data de geração
+      doc.setFontSize(10)
+      doc.text(`Data de Geração: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 36)
+      
+      // Estatísticas
+      doc.setFontSize(14)
+      doc.text("Resumo Financeiro", 14, 46)
+      
+      doc.setFontSize(11)
+      doc.text(`Total Arrecadado: R$ ${totalArrecadado.toFixed(2)}`, 14, 54)
+      doc.text(`Pagamentos Confirmados: ${totalPagamentos}`, 14, 60)
+      doc.text(`Média por Pagamento: R$ ${mediaPorMorador.toFixed(2)}`, 14, 66)
+      
+      // Tabela de pagamentos
+      const tableData = pagamentos.map(payment => [
+        payment.morador.nome,
+        payment.mesAno,
+        `R$ ${payment.valor.toFixed(2)}`,
+        new Date(payment.dataPagamento).toLocaleDateString("pt-BR"),
+        payment.metodo,
+        payment.comprovante ? "Sim" : "Não"
+      ])
+      
+      autoTable(doc, {
+        startY: 74,
+        head: [["Morador", "Mês/Ano", "Valor", "Data Pagamento", "Método", "Comprovante"]],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        styles: { fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 25 }
+        }
+      })
+      
+      // Rodapé
+      const pageCount = (doc as any).internal.getNumberOfPages()
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i)
+        doc.setFontSize(8)
+        doc.text(
+          `Página ${i} de ${pageCount}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: "center" }
+        )
+      }
+      
+      // Salvar o PDF
+      doc.save(`relatorio-financeiro-${mesNome}-${selectedYear}.pdf`)
+      
+      toast({
+        title: "Relatório exportado com sucesso",
+        description: `O relatório de ${mesNome}/${selectedYear} foi gerado.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao exportar relatório",
+        description: "Ocorreu um erro ao gerar o PDF",
+        variant: "destructive",
+      })
+    }
+  }
+
   const totalArrecadado = financasData?.estatisticas.totalArrecadado || 0
   const totalPagamentos = financasData?.totalPagamentos || 0
   const mediaPorMorador = financasData?.estatisticas.mediaPorMorador || 0
@@ -115,7 +199,7 @@ export default function FinancasPage() {
             <h1 className="text-3xl font-bold">Finanças</h1>
             <p className="text-muted-foreground">Visualize todos os pagamentos confirmados com comprovantes</p>
           </div>
-          <Button>
+          <Button onClick={exportarRelatorio}>
             <Download className="mr-2 h-4 w-4" />
             Exportar Relatório
           </Button>
