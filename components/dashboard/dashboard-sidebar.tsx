@@ -7,13 +7,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
-  BarChart3,
   Building2,
   ChevronDown,
-  Droplet,
   Home,
   LogOut,
-  MapPin,
   Settings,
   Users,
   Wallet,
@@ -51,26 +48,11 @@ const sidebarItems: SidebarItem[] = [
     icon: Users,
     permission: "cadastroMoradores",
   },
-  // {
-  //   title: "Pontos de Distribuição",
-  //   href: "/dashboard/pontos-distribuicao",
-  //   icon: MapPin,
-  //   permission: "gerenciarPontos",
-  // },
   {
     title: "Galeria",
     href: "/dashboard/galeria",
     icon: ImageIcon,
     permission: "cadastroMoradores", // Usando a mesma permissão de moradores para admin e funcionário
-  },
-  {
-    title: "Dashboards",
-    icon: BarChart3,
-    permission: "visualizarDashboards",
-    submenu: [
-      { title: "Anual", href: "/dashboard/dashboards/anual", permission: "visualizarDashboards" },
-      { title: "Mensal", href: "/dashboard/dashboards/mensal", permission: "visualizarDashboards" },
-    ],
   },
   {
     title: "Finanças",

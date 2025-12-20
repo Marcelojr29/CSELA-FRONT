@@ -7,18 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Bell, Download, Users, TrendingUp, TrendingDown, Minus, Loader2 } from "lucide-react"
-import { NotificationsTable } from "@/components/dashboard/notifications-table"
 import { RecentPayments } from "@/components/dashboard/recent-payments"
 import { Overview } from "@/components/dashboard/overview"
 import { homeApi } from "@/lib/api"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 interface DashboardData {
   periodo: {
@@ -92,69 +83,6 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Home</h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Bell className="mr-2 h-4 w-4" />
-              Notificações
-              <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">5</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Notificações Recentes</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="max-h-96 overflow-y-auto">
-              <DropdownMenuItem className="flex flex-col items-start p-4">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                  <span className="font-medium text-sm">Pagamento em Atraso</span>
-                  <span className="text-xs text-muted-foreground ml-auto">2h atrás</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">João Silva - 3 meses em atraso</p>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start p-4">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-                  <span className="font-medium text-sm">Vencimento Próximo</span>
-                  <span className="text-xs text-muted-foreground ml-auto">5h atrás</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">15 moradores com vencimento em 3 dias</p>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start p-4">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <span className="font-medium text-sm">Pagamento Recebido</span>
-                  <span className="text-xs text-muted-foreground ml-auto">1d atrás</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Maria Santos - R$ 45,00</p>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start p-4">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                  <span className="font-medium text-sm">Novo Morador</span>
-                  <span className="text-xs text-muted-foreground ml-auto">2d atrás</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Carlos Oliveira foi cadastrado</p>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start p-4">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
-                  <span className="font-medium text-sm">Relatório Mensal</span>
-                  <span className="text-xs text-muted-foreground ml-auto">3d atrás</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Relatório de dezembro disponível</p>
-              </DropdownMenuItem>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-center justify-center">
-              <span className="text-sm text-primary">Ver todas as notificações</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -316,18 +244,11 @@ export default function DashboardPage() {
         <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Notificações Pendentes</CardTitle>
-                <CardDescription>Moradores que precisam ser notificados</CardDescription>
-              </div>
               <Button variant="outline" size="sm">
                 <Download className="mr-2 h-4 w-4" />
                 Exportar
               </Button>
             </CardHeader>
-            <CardContent>
-              <NotificationsTable />
-            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="payments" className="space-y-4">
